@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 38 20% 96%;
+  --foreground: 30 15% 12%;
+  --card: 40 25% 98%;
+  --card-foreground: 30 15% 12%;
+  --card-border: 35 15% 90%;
+  --border: 35 15% 88%;
+  --primary: 176 98% 22%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 35 10% 90%;
+  --secondary-foreground: 30 15% 12%;
+  --muted: 35 12% 91%;
+  --muted-foreground: 30 8% 45%;
+  --accent: 176 30% 88%;
+  --accent-foreground: 176 98% 18%;
+  --destructive: 0 72% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 35 12% 80%;
+  --ring: 176 98% 22%;
+  --radius: 0.75rem;
+  --font-sans: 'Satoshi', system-ui, sans-serif;
+  --sidebar: 40 20% 95%;
+  --sidebar-foreground: 30 15% 12%;
+  --sidebar-border: 35 15% 88%;
+  --sidebar-primary: 176 98% 22%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 35 10% 90%;
+  --sidebar-accent-foreground: 30 15% 12%;
+  --sidebar-ring: 176 98% 22%;
+  --popover: 40 25% 98%;
+  --popover-foreground: 30 15% 12%;
+  --popover-border: 35 15% 88%;
+  --chart-1: 176 98% 22%;
+  --chart-2: 142 60% 38%;
+  --chart-3: 32 80% 50%;
+  --chart-4: 262 60% 55%;
+  --chart-5: 0 72% 48%;
+}
+
+.dark {
+  --background: 25 10% 8%;
+  --foreground: 38 15% 88%;
+  --card: 25 10% 11%;
+  --card-foreground: 38 15% 88%;
+  --card-border: 25 8% 18%;
+  --border: 25 8% 18%;
+  --primary: 176 60% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 25 8% 18%;
+  --secondary-foreground: 38 15% 88%;
+  --muted: 25 8% 18%;
+  --muted-foreground: 38 8% 55%;
+  --accent: 176 20% 20%;
+  --accent-foreground: 176 60% 60%;
+  --destructive: 0 65% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 25 8% 25%;
+  --ring: 176 60% 45%;
+  --sidebar: 25 10% 9%;
+  --sidebar-foreground: 38 15% 88%;
+  --sidebar-border: 25 8% 18%;
+  --sidebar-primary: 176 60% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 25 8% 18%;
+  --sidebar-accent-foreground: 38 15% 88%;
+  --sidebar-ring: 176 60% 45%;
+  --popover: 25 10% 11%;
+  --popover-foreground: 38 15% 88%;
+  --popover-border: 25 8% 18%;
+  --chart-1: 176 60% 45%;
+  --chart-2: 142 50% 48%;
+  --chart-3: 32 70% 55%;
+  --chart-4: 262 55% 60%;
+  --chart-5: 0 65% 55%;
+}
+
+* { box-sizing: border-box; }
+body { font-family: var(--font-sans); -webkit-tap-highlight-color: transparent; }
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
