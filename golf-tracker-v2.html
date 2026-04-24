@@ -70,7 +70,7 @@
       overscroll-behavior: none;
     }
     button { font: inherit; color: inherit; border: none; cursor: pointer; background: none; }
-    input, select { font: inherit; color: inherit; }
+    input, select, textarea { font: inherit; color: inherit; font-size: max(1rem, 16px); }
     svg { display: block; }
 
     /* ── LAYOUT ─────────────────────────────────────────────── */
@@ -600,6 +600,44 @@
     .topbar-weather.hidden { display: none; }
     .topbar-weather .tw-icon { font-size: .95rem; }
 
+    /* ── Conditions / plays-like panel ─────────────────────── */
+    .compass-btn {
+      width: 100%; min-height: 52px; border-radius: var(--r-md);
+      border: 1.5px solid var(--border); background: var(--surface2);
+      display: flex; align-items: center; justify-content: center; gap: .55rem;
+      font-size: .88rem; font-weight: 700; transition: all 180ms var(--ease);
+      color: var(--muted);
+    }
+    .compass-btn.compass-active { background: var(--primary-bg); border-color: var(--primary); color: var(--primary-h); }
+    .compass-btn:active { transform: scale(.98); }
+    .cond-rows { margin-top: .5rem; display: grid; gap: .3rem; }
+    .cond-row {
+      display: flex; align-items: center; gap: .5rem;
+      padding: .4rem .65rem; background: var(--surface2);
+      border-radius: var(--r-sm); border: 1px solid var(--border);
+    }
+    .cond-icon { font-size: 1rem; width: 1.5rem; text-align: center; flex-shrink: 0; }
+    .cond-label { flex: 1; font-size: .8rem; font-weight: 600; color: var(--text); }
+    .cond-val { font-size: .8rem; font-weight: 700; white-space: nowrap; }
+    .cond-longer  { color: var(--warn); }
+    .cond-shorter { color: var(--success); }
+    .cond-neutral { color: var(--muted); }
+    .plays-like {
+      display: flex; align-items: center; gap: .6rem;
+      margin-top: .5rem; padding: .7rem .9rem;
+      background: var(--neutral-bg); border-radius: var(--r-md);
+      border: 1.5px solid var(--border);
+    }
+    .plays-like-label { font-size: .68rem; font-weight: 700; color: var(--muted); flex: 1;
+      text-transform: uppercase; letter-spacing: .05em; }
+    .plays-like-yds { font-size: 1.5rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+    .plays-like-diff { font-size: .8rem; font-weight: 700; color: var(--muted); }
+    .plays-like.pl-longer  { background: var(--warn-bg);    border-color: var(--warn); }
+    .plays-like.pl-longer  .plays-like-yds { color: var(--warn); }
+    .plays-like.pl-shorter { background: var(--success-bg); border-color: var(--success); }
+    .plays-like.pl-shorter .plays-like-yds { color: var(--success); }
+    .cond-hint { font-size: .73rem; color: var(--muted); padding: .4rem 0; font-style: italic; }
+
     /* Swipe transition hint */
     @keyframes slideInRight { from { opacity:0; transform:translateX(20px); } to { opacity:1; transform:none; } }
     @keyframes slideInLeft  { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:none; } }
@@ -666,11 +704,25 @@
             <select id="teeBox"></select>
           </div>
           <div class="field">
-            <label for="handicap">Handicap</label>
+            <label for="handicap">Handicap index</label>
             <input id="handicap" type="number" inputmode="decimal" placeholder="11" value="11"/>
           </div>
         </div>
-        <div class="field">
+        <div class="row2" style="margin-top:.5rem;">
+          <div class="field" style="margin:0;">
+            <label for="courseRating">Course rating</label>
+            <input id="courseRating" type="number" inputmode="decimal" step="0.1" placeholder="70.5"/>
+          </div>
+          <div class="field" style="margin:0;">
+            <label for="slopeRating">Slope</label>
+            <input id="slopeRating" type="number" inputmode="numeric" placeholder="113"/>
+          </div>
+        </div>
+        <div id="playingHcapDisplay" class="hidden" style="font-size:.78rem;margin-top:.4rem;padding:.45rem .75rem;background:var(--primary-bg);border-radius:var(--r-sm);border:1px solid rgba(1,105,111,.2);display:flex;align-items:center;justify-content:space-between;">
+          <span style="color:var(--muted);">WHS playing handicap</span>
+          <strong id="playingHcapVal" style="color:var(--primary-h);font-size:.95rem;">&#x2013;</strong>
+        </div>
+        <div class="field" style="margin-top:.75rem;">
           <label for="datePlayed">Date</label>
           <input id="datePlayed" type="date"/>
         </div>
@@ -884,7 +936,8 @@ const state = {
   selectedCourseId: 'hallowes',
   selectedTee: 'White',
   currentHole: 0,
-  holes: []
+  holes: [],
+  wind: { speedMph: null, dirDeg: null, tempC: null, rainMm: null }
 };
 
 /* ════════════════════════════════════════════════════════════
@@ -902,9 +955,41 @@ function allocateShots(strokeIndexes, handicap) {
   return strokeIndexes.map(si => base + (si <= rem ? 1 : 0));
 }
 
+function calcPlayingHandicap(index, slope, courseRating, totalPar) {
+  const idx = parseFloat(index);
+  const sl  = parseFloat(slope);
+  const cr  = parseFloat(courseRating);
+  if (!idx || isNaN(idx)) return 0;
+  if (!sl || isNaN(sl) || !cr || isNaN(cr)) return Math.round(idx);
+  return Math.round(idx * (sl / 113) + (cr - totalPar));
+}
+
+function updatePlayingHcapDisplay() {
+  const c = getSelectedCourse();
+  const tee = c?.tees?.[state.selectedTee];
+  const display = $('#playingHcapDisplay');
+  const val = $('#playingHcapVal');
+  if (!display || !val) return;
+  const sl = $('#slopeRating')?.value;
+  const cr = $('#courseRating')?.value;
+  const hasData = sl && cr;
+  if (!hasData || !tee) { display.classList.add('hidden'); return; }
+  const totalPar = tee.par.reduce((a,b) => a+b, 0);
+  const ph = calcPlayingHandicap($('#handicap').value, sl, cr, totalPar);
+  display.classList.remove('hidden');
+  val.textContent = ph;
+}
+
 function makeHoleData(course, teeName) {
   const tee = course.tees[teeName];
-  const allowances = allocateShots(tee.strokeIndex, $('#handicap').value);
+  const totalPar = tee.par.reduce((a,b) => a+b, 0);
+  const playingHcap = calcPlayingHandicap(
+    $('#handicap').value,
+    $('#slopeRating')?.value || tee.slopeRating,
+    $('#courseRating')?.value || tee.courseRating,
+    totalPar
+  );
+  const allowances = allocateShots(tee.strokeIndex, playingHcap);
   return tee.par.map((par, idx) => ({
     hole: idx+1, par, yards: tee.yards[idx]||0,
     strokeIndex: tee.strokeIndex[idx]||idx+1,
@@ -916,6 +1001,7 @@ function makeHoleData(course, teeName) {
     gir: true,
     upDown: null, sandSave: null,
     confirmed: false,
+    holeBearing: null,
     shots: Array.from({length: par}, () => ({ done: false })),
     note: ''
   }));
@@ -1121,6 +1207,142 @@ function renderScorecard() {
 /* ════════════════════════════════════════════════════════════
    ENTRY HOLE RENDER
 ═══════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════════════════
+   CONDITIONS EFFECT
+═══════════════════════════════════════════════════════════ */
+function calcConditionsEffect(holeBearingDeg, shotYards, wind) {
+  const { speedMph, dirDeg, tempC, rainMm, pressureHpa } = wind;
+  // Wind FROM dirDeg. Positive headwindRaw = headwind, negative = tailwind.
+  const angleDiff   = (dirDeg - holeBearingDeg + 360) % 360;
+  const angleRad    = angleDiff * Math.PI / 180;
+  const headwindRaw  = Math.cos(angleRad) * speedMph;
+  const crosswindRaw = Math.sin(angleRad) * speedMph;
+  // Headwind +0.5%/mph, tailwind -0.3%/mph (asymmetric - tailwind helps less)
+  const headwindPct = headwindRaw > 0 ? headwindRaw * 0.5 : headwindRaw * 0.3;
+  // Cold air is denser - ball flies shorter. UK baseline 15C.
+  const tempPct     = Math.max(0, 15 - tempC) * 0.25;
+  // Rain: wet ball + soft ground reduces carry
+  const rainPct     = rainMm > 8 ? 4 : rainMm > 2 ? 2 : 0;
+  // Pressure: low pressure = thin air = less drag = ball flies further = plays shorter.
+  // Standard 1013 hPa. Each 10 hPa deviation = ~0.5%. Positive = plays longer.
+  const pressurePct = pressureHpa ? (pressureHpa - 1013) * 0.05 : 0;
+  const totalPct      = headwindPct + tempPct + rainPct + pressurePct;
+  const adjustedYards = Math.round(shotYards * (1 + totalPct / 100));
+  return {
+    headwindMph:        Math.round(Math.abs(headwindRaw)),
+    isHeadwind:         headwindRaw > 0.5,
+    isTailwind:         headwindRaw < -0.5,
+    crosswindMph:       Math.round(Math.abs(crosswindRaw)),
+    crosswindFromRight: crosswindRaw > 0,
+    headwindYds:        Math.round(Math.abs(headwindPct) / 100 * shotYards),
+    tempC,  tempYds:    Math.round(tempPct / 100 * shotYards),
+    rainMm, rainYds:    Math.round(rainPct / 100 * shotYards),
+    pressureHpa, pressurePct,
+    pressureYds:        Math.round(Math.abs(pressurePct) / 100 * shotYards),
+    rainPct, tempPct,
+    totalPct: Math.round(totalPct * 10) / 10,
+    adjustedYards, yardsDiff: adjustedYards - shotYards
+  };
+}
+
+function buildConditionsPanel(h) {
+  const hasBearing = h.holeBearing !== null;
+  const hasYards   = h.yardsToGreen && Number(h.yardsToGreen) > 0;
+  const wind       = state.wind;
+  const hasWind    = wind && wind.speedMph !== null;
+
+  const btnLabel = hasBearing
+    ? '\uD83E\uDDED ' + Math.round(h.holeBearing) + '\u00b0 \u2013 tap to re-capture'
+    : '\uD83E\uDDED Point phone down fairway \u2192';
+  const btnCls = 'compass-btn' + (hasBearing ? ' compass-active' : '');
+
+  let inner = '';
+  if (hasBearing && hasYards && hasWind) {
+    const e = calcConditionsEffect(h.holeBearing, Number(h.yardsToGreen), wind);
+    let rows = '';
+    if (e.headwindMph > 1) {
+      const icon = e.isHeadwind ? '\u2191' : '\u2193';
+      const lbl  = e.isHeadwind ? 'Headwind' : 'Tailwind';
+      const cls  = e.isHeadwind ? 'cond-longer' : 'cond-shorter';
+      const sgn  = e.isHeadwind ? '+' : '-';
+      rows += '<div class="cond-row"><span class="cond-icon">' + icon + '</span>'
+        + '<span class="cond-label">' + lbl + ' ' + e.headwindMph + 'mph</span>'
+        + '<span class="cond-val ' + cls + '">' + sgn + e.headwindYds + ' yds</span></div>';
+    }
+    if (e.crosswindMph > 2) {
+      const aim = e.crosswindFromRight ? 'aim left' : 'aim right';
+      rows += '<div class="cond-row"><span class="cond-icon">\u2194</span>'
+        + '<span class="cond-label">Crosswind ' + e.crosswindMph + 'mph</span>'
+        + '<span class="cond-val cond-neutral">' + aim + '</span></div>';
+    }
+    if (e.tempPct > 0) {
+      rows += '<div class="cond-row"><span class="cond-icon">\uD83C\uDF21\uFE0F</span>'
+        + '<span class="cond-label">Cold (' + e.tempC + '\u00b0C)</span>'
+        + '<span class="cond-val cond-longer">+' + e.tempYds + ' yds</span></div>';
+    }
+    if (e.rainPct > 0) {
+      rows += '<div class="cond-row"><span class="cond-icon">\uD83D\uDCA7</span>'
+        + '<span class="cond-label">Rain (' + e.rainMm + 'mm)</span>'
+        + '<span class="cond-val cond-longer">+' + e.rainYds + ' yds</span></div>';
+    }
+    if (e.pressureHpa && Math.abs(e.pressurePct) >= 0.5) {
+      const isLow = e.pressurePct < 0;
+      const cls   = isLow ? 'cond-shorter' : 'cond-longer';
+      const sign  = isLow ? '-' : '+';
+      const lbl   = isLow ? 'Low pressure (' + e.pressureHpa + ' hPa)' : 'High pressure (' + e.pressureHpa + ' hPa)';
+      rows += '<div class="cond-row"><span class="cond-icon">\uD83D\uDCCA</span>'
+        + '<span class="cond-label">' + lbl + '</span>'
+        + '<span class="cond-val ' + cls + '">' + sign + e.pressureYds + ' yds</span></div>';
+    }
+    const plsCls = e.yardsDiff > 4 ? 'plays-like pl-longer'
+                 : e.yardsDiff < -4 ? 'plays-like pl-shorter' : 'plays-like';
+    const sgn = e.yardsDiff >= 0 ? '+' : '';
+    inner = '<div class="cond-rows">' + rows + '</div>'
+      + '<div class="' + plsCls + '">'
+      + '<span class="plays-like-label">Plays like</span>'
+      + '<span class="plays-like-yds">' + e.adjustedYards + ' yds</span>'
+      + '<span class="plays-like-diff">' + sgn + e.yardsDiff + '</span></div>';
+  } else if (hasBearing && !hasYards) {
+    inner = '<p class="cond-hint">Enter yards to green above for the adjusted yardage</p>';
+  } else if (!hasWind) {
+    inner = '<p class="cond-hint">Set a date with weather loaded to activate</p>';
+  } else {
+    inner = '<p class="cond-hint">Point your phone down the fairway and tap to capture the bearing</p>';
+  }
+  return '<div id="conditionsPanel">'
+    + '<button type="button" class="' + btnCls + '" id="compassBtn">' + btnLabel + '</button>'
+    + inner + '</div>';
+}
+
+async function requestCompassBearing() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if (perm !== 'granted') return null;
+    } catch(err) { return null; }
+  }
+  return new Promise(resolve => {
+    let done = false;
+    const handler = e => {
+      if (done) return;
+      const heading = e.webkitCompassHeading ?? null;
+      if (heading === null) return;
+      done = true;
+      window.removeEventListener('deviceorientation', handler);
+      resolve(Math.round(heading));
+    };
+    window.addEventListener('deviceorientation', handler);
+    setTimeout(() => {
+      if (!done) {
+        done = true;
+        window.removeEventListener('deviceorientation', handler);
+        resolve(null);
+      }
+    }, 4000);
+  });
+}
+
 function renderEntryHole(direction) {
   const h = state.holes[state.currentHole];
   if (!h) return;
@@ -1189,6 +1411,9 @@ function renderEntryHole(direction) {
         <input class="yards-input" type="number" inputmode="numeric" placeholder="\u2013" value="${h.yardsToGreen||''}" id="yardsInput"/>
         <span class="yards-unit">yds</span>
       </div>
+
+      <div class="section-label">Conditions effect</div>
+      ${buildConditionsPanel(h)}
 
       <div class="section-label">Tee shot</div>
       ${showFairway ? `<div class="fairway-selector">
@@ -1403,6 +1628,12 @@ function renderEntryHole(direction) {
   if (yardsInput) {
     yardsInput.addEventListener('input', e => {
       state.holes[state.currentHole].yardsToGreen = e.target.value;
+      const panel = $('#conditionsPanel');
+      if (panel) {
+        const fresh = buildConditionsPanel(state.holes[state.currentHole]);
+        panel.outerHTML = fresh;
+        attachCompassHandler();
+      }
     });
   }
 
@@ -1412,6 +1643,29 @@ function renderEntryHole(direction) {
       state.holes[state.currentHole].note = e.target.value;
     });
   }
+
+  attachCompassHandler();
+}
+
+function attachCompassHandler() {
+  const btn = $('#compassBtn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    btn.textContent = 'Capturing\u2026';
+    btn.disabled = true;
+    const bearing = await requestCompassBearing();
+    btn.disabled = false;
+    if (bearing === null) {
+      btn.textContent = '\u26A0\uFE0F Compass unavailable \u2013 tap to retry';
+      return;
+    }
+    state.holes[state.currentHole].holeBearing = bearing;
+    const panel = $('#conditionsPanel');
+    if (panel) {
+      panel.outerHTML = buildConditionsPanel(state.holes[state.currentHole]);
+      attachCompassHandler();
+    }
+  });
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1455,7 +1709,19 @@ function fillTeeOptions(course) {
   if (names.length) {
     state.selectedTee = (state.selectedTee && course.tees[state.selectedTee]) ? state.selectedTee : names[0];
     sel.value = state.selectedTee;
+    populateRatingFields(course, state.selectedTee);
   }
+}
+
+function populateRatingFields(course, teeName) {
+  const tee = course?.tees?.[teeName];
+  if (!tee) return;
+  const srEl = $('#slopeRating');
+  const crEl = $('#courseRating');
+  // Only auto-fill if the field is empty or the value came from API (not manually edited)
+  if (srEl && tee.slopeRating)  srEl.value = tee.slopeRating;
+  if (crEl && tee.courseRating) crEl.value = tee.courseRating;
+  updatePlayingHcapDisplay();
 }
 
 function buildCoursePills() {
@@ -1682,6 +1948,7 @@ async function loadApiCourseScorecard(courseEntry) {
     }
     if (Object.keys(allTees).length === 0) { setCourseStatus('No tee data available'); return false; }
     courseEntry.tees = allTees;
+    saveCourseCache();
     setCourseStatus(`\u2713 ${Object.keys(allTees).length} tee${Object.keys(allTees).length !== 1 ? 's' : ''} loaded`);
     return true;
   } catch(e) {
@@ -1809,6 +2076,7 @@ function attachEvents() {
   $('#teeBox').addEventListener('change', () => {
     const c = getSelectedCourse(); if (!c) return;
     state.selectedTee = $('#teeBox').value;
+    populateRatingFields(c, state.selectedTee);
     state.holes = makeHoleData(c, state.selectedTee);
     state.currentHole = 0;
     computeTotals();
@@ -1818,7 +2086,20 @@ function attachEvents() {
   $('#handicap').addEventListener('change', () => {
     const c = getSelectedCourse(); if (!c || !state.selectedTee) return;
     state.holes = makeHoleData(c, state.selectedTee).map((fresh,i) => ({ ...fresh, ...state.holes[i], shotAllowance:fresh.shotAllowance }));
+    updatePlayingHcapDisplay();
     computeTotals();
+  });
+
+  // Slope / course rating — recalculate playing handicap and shot allowances on edit
+  ['#slopeRating','#courseRating'].forEach(sel => {
+    const el = $(sel);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      updatePlayingHcapDisplay();
+      const c = getSelectedCourse(); if (!c || !state.selectedTee) return;
+      state.holes = makeHoleData(c, state.selectedTee).map((fresh,i) => ({ ...fresh, ...state.holes[i], shotAllowance:fresh.shotAllowance }));
+      computeTotals();
+    });
   });
 
   // Course search — custom dropdown (replaces native datalist)
@@ -2006,6 +2287,8 @@ async function fetchWeather(date) {
     const windDeg = d.wind_direction_10m_dominant[0];
     const compass = degreesToCompass(windDeg);
     const arrow   = compassArrow(windDeg);
+    // Store for plays-like calculator
+    state.wind = { speedMph: wind, dirDeg: windDeg, tempC: tMax, rainMm: rain, pressureHpa: pressure };
     const pressureArr = data.hourly?.surface_pressure || [];
     const pressure = pressureArr[12] ? Math.round(pressureArr[12]) : null;
     const tag     = isPast
@@ -2047,6 +2330,41 @@ const _memStore = {};
 const store = (() => { try { const s = window['local'+'Storage']; s.setItem('_t','1'); s.removeItem('_t'); return s; } catch { return null; } })();
 function storeGet(k)    { try { return store ? store.getItem(k) : (_memStore[k] ?? null); } catch { return _memStore[k] ?? null; } }
 function storeSet(k, v) { try { if (store) store.setItem(k, v); else _memStore[k] = v; } catch { _memStore[k] = v; } }
+
+/* ── Course cache ────────────────────────────────────────────── */
+const COURSE_CACHE_KEY = 'golf-course-cache-v1';
+
+function saveCourseCache() {
+  try {
+    const toCache = courseLibrary
+      .filter(c => Object.keys(c.tees).length > 0)
+      .map(c => ({
+        id: c.id, _apiId: c._apiId, _clubId: c._clubId, _courseId: c._courseId,
+        _lat: c._lat, _lon: c._lon, name: c.name, location: c.location,
+        tees: c.tees, _apiLoaded: true
+      }));
+    storeSet(COURSE_CACHE_KEY, JSON.stringify(toCache));
+  } catch(e) { console.warn('Course cache save failed', e); }
+}
+
+function loadCourseCache() {
+  try {
+    const saved = storeGet(COURSE_CACHE_KEY);
+    if (!saved) return;
+    const cached = JSON.parse(saved);
+    const existingIds = new Set(courseLibrary.map(c => c.id));
+    cached.forEach(c => {
+      if (existingIds.has(c.id)) {
+        // Merge tees into existing entry (e.g. enrich built-in Hallowes)
+        const existing = courseLibrary.find(x => x.id === c.id);
+        if (existing) { Object.assign(existing.tees, c.tees); existing._apiLoaded = true; }
+      } else {
+        courseLibrary.push(c);
+        existingIds.add(c.id);
+      }
+    });
+  } catch(e) { console.warn('Course cache load failed', e); }
+}
 
 function loadPlayers() {
   try {
@@ -2182,6 +2500,7 @@ function attachPlayerEvents() {
 ═══════════════════════════════════════════════════════════ */
 (async () => {
   themeInit();
+  loadCourseCache(); // restore previously loaded courses before anything runs
   $('#datePlayed').value = new Date().toISOString().slice(0,10);
   const _activePlayer = players.find(p => p.id === activePlayerId);
   if (_activePlayer) $('#handicap').value = _activePlayer.handicap;
@@ -2210,6 +2529,7 @@ function attachPlayerEvents() {
               computeTotals();
             }
             setCourseStatus('\u2713 All tees loaded \u2013 Black, White, Yellow, Blue, Red');
+            saveCourseCache();
           }
         }
       });
