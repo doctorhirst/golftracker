@@ -124,6 +124,25 @@
     .field small { font-size: .72rem; color: var(--muted); margin-top: .3rem; display: block; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
 
+    /* Custom course search dropdown */
+    .course-search-wrap { position: relative; }
+    .course-dropdown {
+      position: absolute; left: 0; right: 0;
+      background: var(--surface); border: 1.5px solid var(--primary);
+      border-radius: var(--r-md); z-index: 300;
+      box-shadow: var(--shadow); overflow-y: auto; max-height: 260px;
+      margin-top: .25rem;
+    }
+    .course-dropdown-item {
+      padding: .75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--divider);
+      transition: background 120ms;
+    }
+    .course-dropdown-item:last-child { border-bottom: none; }
+    .course-dropdown-item:active, .course-dropdown-item:hover { background: var(--primary-bg); }
+    .course-dropdown-name { font-weight: 700; font-size: .88rem; color: var(--text); line-height: 1.2; }
+    .course-dropdown-loc  { font-size: .72rem; color: var(--muted); margin-top: .1rem; }
+    .course-dropdown-empty { padding: .75rem 1rem; font-size: .8rem; color: var(--muted); font-style: italic; }
+
     /* Course pills */
     .course-pills { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
     .course-pill {
@@ -396,7 +415,7 @@
     .errors-list { display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .5rem; }
     .errors-list li { font-size: .7rem; color: var(--muted); list-style: none;
       padding-left: .8rem; position: relative; line-height: 1.3; }
-    .errors-list li::before { content: '⚠'; position: absolute; left: 0; font-size: .58rem; top: .05rem; }
+    .errors-list li::before { content: '\26A0'; position: absolute; left: 0; font-size: .58rem; top: .05rem; }
 
     /* Notes field */
     .notes-input {
@@ -634,10 +653,10 @@
 
       <div class="card">
         <div class="card-head">Course &amp; round</div>
-        <div class="field">
+        <div class="field course-search-wrap">
           <label for="courseSearch">Course</label>
-          <input id="courseSearch" list="courseSuggestions" placeholder="Search course…" autocomplete="off"/>
-          <datalist id="courseSuggestions"></datalist>
+          <input id="courseSearch" placeholder="Search course&#x2026;" autocomplete="off" spellcheck="false" aria-autocomplete="list" aria-controls="courseDropdown" role="combobox"/>
+          <div id="courseDropdown" class="course-dropdown hidden" role="listbox"></div>
         </div>
         <div id="courseStatus" style="font-size:.75rem;color:var(--muted);margin:.35rem 0;"></div>
         <div class="course-pills" id="coursePills"></div>
@@ -657,7 +676,7 @@
         </div>
         <div class="field">
           <label for="roundNotes">Notes</label>
-          <input id="roundNotes" placeholder="Windy, comp…"/>
+          <input id="roundNotes" placeholder="Windy, comp&#x2026;"/>
         </div>
         <!-- WEATHER STRIP -->
         <div id="weatherStrip" class="weather-strip hidden"></div>
@@ -674,7 +693,7 @@
             <div class="field" style="margin:0;">
               <label for="apiKeyInput">RapidAPI key</label>
               <input id="apiKeyInput" type="password" placeholder="Paste your key here" autocomplete="off"/>
-              <small>Free tier: 200 requests/month. <a href="https://rapidapi.com/golfapi-uk-golfapi-uk-default/api/uk-golf-course-data-api" target="_blank" style="color:var(--primary);">Get a free key →</a></small>
+              <small>Free tier: 200 requests/month. <a href="https://rapidapi.com/golfapi-uk-golfapi-uk-default/api/uk-golf-course-data-api" target="_blank" style="color:var(--primary);">Get a free key &#x2192;</a></small>
             </div>
             <div style="display:flex;gap:.5rem;margin-top:.6rem;">
               <button type="button" class="btn-ghost" style="flex:1;height:40px;font-size:.82rem;" id="saveApiKey">Save key</button>
@@ -688,14 +707,14 @@
       <div class="card">
         <div class="card-head">Round totals</div>
         <div class="metrics-grid">
-          <div class="metric-box"><strong id="mScore">–</strong><span>Strokes</span></div>
-          <div class="metric-box"><strong id="mPts">–</strong><span>Stableford</span></div>
-          <div class="metric-box"><strong id="mFIR">–</strong><span>Fairways hit</span></div>
-          <div class="metric-box"><strong id="mGIR">–</strong><span>Greens hit</span></div>
-          <div class="metric-box"><strong id="mPutts">–</strong><span>Putts</span></div>
-          <div class="metric-box"><strong id="mUpDown">–</strong><span>Up &amp; down</span></div>
-          <div class="metric-box"><strong id="mProcess">–</strong><span>Process %</span></div>
-          <div class="metric-box"><strong id="mPar">–</strong><span>Par total</span></div>
+          <div class="metric-box"><strong id="mScore">&#x2013;</strong><span>Strokes</span></div>
+          <div class="metric-box"><strong id="mPts">&#x2013;</strong><span>Stableford</span></div>
+          <div class="metric-box"><strong id="mFIR">&#x2013;</strong><span>Fairways hit</span></div>
+          <div class="metric-box"><strong id="mGIR">&#x2013;</strong><span>Greens hit</span></div>
+          <div class="metric-box"><strong id="mPutts">&#x2013;</strong><span>Putts</span></div>
+          <div class="metric-box"><strong id="mUpDown">&#x2013;</strong><span>Up &amp; down</span></div>
+          <div class="metric-box"><strong id="mProcess">&#x2013;</strong><span>Process %</span></div>
+          <div class="metric-box"><strong id="mPar">&#x2013;</strong><span>Par total</span></div>
         </div>
         <div class="section-label" style="margin-top:.85rem;">Holes at a glance</div>
         <div class="hole-strip" id="holeStrip"></div>
@@ -704,12 +723,12 @@
       <div class="card">
         <div class="card-head">Actions</div>
         <button type="button" class="btn-primary" id="saveToHistory" style="width:100%;margin-bottom:.6rem;border-radius:var(--r-full);">
-          ✓ Save round to history
+          &#x2713; Save round to history
         </button>
         <div id="saveStatus" style="font-size:.75rem;color:var(--muted);text-align:center;min-height:1.2rem;margin-bottom:.5rem;"></div>
         <div class="row2">
-          <button type="button" class="btn-ghost" id="saveJson">↓ JSON</button>
-          <button type="button" class="btn-ghost" id="exportCsv">↓ CSV</button>
+          <button type="button" class="btn-ghost" id="saveJson">&#x2193; JSON</button>
+          <button type="button" class="btn-ghost" id="exportCsv">&#x2193; CSV</button>
         </div>
         <div class="row2 mt2" style="grid-template-columns:1fr;">
           <button type="button" class="btn-ghost" id="clearRoundBtn" style="border-color:var(--danger);color:var(--danger);">Clear round</button>
@@ -719,7 +738,7 @@
 
     <div class="btn-start">
       <div class="btn-start-inner">
-        <button type="button" class="btn-primary" id="startRoundBtn">Enter scores →</button>
+        <button type="button" class="btn-primary" id="startRoundBtn">Enter scores &#x2192;</button>
       </div>
     </div>
   </div>
@@ -741,12 +760,12 @@
     <!-- Prev / Next nav -->
     <div class="hole-nav">
       <div class="hole-nav-inner">
-        <button type="button" class="btn-nav btn-prev" id="prevHoleBtn">← Prev</button>
+        <button type="button" class="btn-nav btn-prev" id="prevHoleBtn">&#x2190; Prev</button>
         <div class="hole-nav-info">
           <div class="h-num" id="navHoleNum">H1</div>
           <div class="h-total" id="navHoleTotal">of 18</div>
         </div>
-        <button type="button" class="btn-nav btn-next" id="nextHoleBtn">Next →</button>
+        <button type="button" class="btn-nav btn-next" id="nextHoleBtn">Next &#x2192;</button>
       </div>
     </div>
 
@@ -773,23 +792,23 @@
       <div class="card">
         <div class="card-head">Performance</div>
         <div class="metrics-grid">
-          <div class="metric-box"><strong id="sScore">–</strong><span>Strokes</span></div>
-          <div class="metric-box"><strong id="sPts">–</strong><span>Stableford</span></div>
-          <div class="metric-box"><strong id="sFIR">–</strong><span>Fairways</span></div>
-          <div class="metric-box"><strong id="sGIR">–</strong><span>Greens</span></div>
-          <div class="metric-box"><strong id="sPutts">–</strong><span>Putts</span></div>
-          <div class="metric-box"><strong id="sUpDown">–</strong><span>Up &amp; down</span></div>
-          <div class="metric-box"><strong id="sSand">–</strong><span>Sand saves</span></div>
-          <div class="metric-box"><strong id="sProcess">–</strong><span>Process %</span></div>
+          <div class="metric-box"><strong id="sScore">&#x2013;</strong><span>Strokes</span></div>
+          <div class="metric-box"><strong id="sPts">&#x2013;</strong><span>Stableford</span></div>
+          <div class="metric-box"><strong id="sFIR">&#x2013;</strong><span>Fairways</span></div>
+          <div class="metric-box"><strong id="sGIR">&#x2013;</strong><span>Greens</span></div>
+          <div class="metric-box"><strong id="sPutts">&#x2013;</strong><span>Putts</span></div>
+          <div class="metric-box"><strong id="sUpDown">&#x2013;</strong><span>Up &amp; down</span></div>
+          <div class="metric-box"><strong id="sSand">&#x2013;</strong><span>Sand saves</span></div>
+          <div class="metric-box"><strong id="sProcess">&#x2013;</strong><span>Process %</span></div>
         </div>
       </div>
       <button type="button" class="btn-primary" id="saveToHistory2" style="width:100%;margin-top:.6rem;border-radius:var(--r-full);">
-        ✓ Save round to history
+        &#x2713; Save round to history
       </button>
       <div id="saveStatus2" style="font-size:.75rem;color:var(--muted);text-align:center;min-height:1.2rem;margin-top:.35rem;"></div>
       <div class="export-row" style="margin-top:.5rem;">
-        <button type="button" class="btn-ghost" id="saveJson2">↓ JSON</button>
-        <button type="button" class="btn-ghost" id="exportCsv2">↓ CSV</button>
+        <button type="button" class="btn-ghost" id="saveJson2">&#x2193; JSON</button>
+        <button type="button" class="btn-ghost" id="exportCsv2">&#x2193; CSV</button>
       </div>
     </div>
   </div>
@@ -812,7 +831,7 @@
             <input id="newPlayerHcap" type="number" inputmode="decimal" placeholder="14.2" step="0.1"/>
           </div>
         </div>
-        <p class="hcap-note">England Golf does not provide a public API for handicap lookup, so enter each player\'s index manually. Once saved it persists across sessions.</p>
+        <p class="hcap-note">England Golf does not provide a public API for handicap lookup, so enter each player\u2019s index manually. Once saved it persists across sessions.</p>
         <div class="modal-actions">
           <button type="button" class="btn-ghost" id="closeModal">Cancel</button>
           <button type="button" class="btn-primary" id="savePlayer" style="border-radius:var(--r-full);">Save player</button>
@@ -849,7 +868,7 @@ const courseLibrary = [
     _clubId:   'a8130eaf-cb35-4f83-afdf-297b6de9d6ad',
     _courseId: '8f7e5278-ea88-4971-a0da-237193e71ebc',
     _lat: 53.29296, _lon: -1.4615943,
-    _apiLoaded: false, // will be set true after live fetch
+    _apiLoaded: false,
     name: 'Hallowes Golf Club', location: 'Dronfield, Derbyshire',
     tees: {
       White: {
@@ -890,14 +909,14 @@ function makeHoleData(course, teeName) {
     hole: idx+1, par, yards: tee.yards[idx]||0,
     strokeIndex: tee.strokeIndex[idx]||idx+1,
     shotAllowance: allowances[idx],
-    score: par,  // default = par
-    putts: 2,    // default = 2
+    score: par,
+    putts: 2,
     yardsToGreen: '',
-    fairway: 'hit', // assume fairway hit
-    gir: true,      // assume GIR
+    fairway: 'hit',
+    gir: true,
     upDown: null, sandSave: null,
-    confirmed: false, // true once user has touched this hole
-    shots: Array.from({length: par}, () => ({ done: false })), // one per par stroke
+    confirmed: false,
+    shots: Array.from({length: par}, () => ({ done: false })),
     note: ''
   }));
 }
@@ -915,12 +934,11 @@ function stablefordPoints(score, par, shots) {
 }
 
 function pct(made, total, requireEntry) {
-  if (!total) return '–';
-  if (requireEntry && made === 0) return '–';
+  if (!total) return '\u2013';
+  if (requireEntry && made === 0) return '\u2013';
   return Math.round((made/total)*100) + '%';
 }
 
-// Colour-coded metric helper
 function colourMetric(id, value, thresholds) {
   const el = $(id);
   if (!el) return;
@@ -928,11 +946,10 @@ function colourMetric(id, value, thresholds) {
   const parent = el.closest('.metric-box');
   if (!parent) return;
   parent.classList.remove('metric-green','metric-amber','metric-red');
-  if (value === '–' || value === null) return;
+  if (value === '\u2013' || value === null) return;
   const num = parseFloat(String(value));
   if (isNaN(num)) return;
-  const { green, amber } = thresholds; // green >= green, amber >= amber (else red)
-  // For putts: lower is better (inverted)
+  const { green, amber } = thresholds;
   if (thresholds.invert) {
     if (num <= green) parent.classList.add('metric-green');
     else if (num <= amber) parent.classList.add('metric-amber');
@@ -949,13 +966,12 @@ function colourMetric(id, value, thresholds) {
 ═══════════════════════════════════════════════════════════ */
 let _computeTimer = null;
 function computeTotals() {
-  // Debounce — coalesce rapid taps into one recalculation
   clearTimeout(_computeTimer);
   _computeTimer = setTimeout(_doComputeTotals, 80);
 }
 function _doComputeTotals() {
   const h = state.holes;
-  const scored = h.filter(x => x.confirmed); // only count holes user has touched
+  const scored = h.filter(x => x.confirmed);
   const totalScore = scored.reduce((a,x) => a+(x.score||0), 0);
   const totalPar   = h.reduce((a,x) => a+x.par, 0);
   const totalPts   = scored.length ? h.reduce((a,x) => { const p=stablefordPoints(x.score,x.par,x.shotAllowance); return a+(p||0); }, 0) : null;
@@ -969,33 +985,26 @@ function _doComputeTotals() {
   const sandMade= h.filter(x => x.sandSave === true).length;
   const procDone = h.reduce((a,x) => a + x.shots.filter(s => s.done).length, 0);
   const procMax  = h.reduce((a,x) => a + x.shots.length, 0);
-  // Setup metrics
   const set = (id,v) => { const el=$(id); if(el) el.textContent=v; };
-  set('#mScore', scored.length ? totalScore : '–');
-  set('#mPts',   totalPts !== null ? totalPts : '–');
-  set('#mPar',   totalPar || '–');
-  // putts handled by colourMetric block below
+  set('#mScore', scored.length ? totalScore : '\u2013');
+  set('#mPts',   totalPts !== null ? totalPts : '\u2013');
+  set('#mPar',   totalPar || '\u2013');
   const hasAnyFir = h.some(x => x.confirmed && x.fairway !== null);
-  const leftCount  = h.filter(x => x.fairway === 'left').length;
-  const rightCount = h.filter(x => x.fairway === 'right').length;
   const hasAnyGir = h.some(x => x.confirmed);
-  const firPct  = hasAnyFir ? pct(firMade, firElig) : '–';
-  const girPct  = hasAnyGir ? pct(girMade, h.filter(x=>x.gir!==null).length) : '–';
+  const firPct  = hasAnyFir ? pct(firMade, firElig) : '\u2013';
+  const girPct  = hasAnyGir ? pct(girMade, h.filter(x=>x.gir!==null).length) : '\u2013';
   const udPct   = pct(udMade, udElig);
-  const procPct = procDone ? pct(procDone,procMax) : '–';
-  // Setup view metrics
+  const procPct = procDone ? pct(procDone,procMax) : '\u2013';
   colourMetric('#mFIR',     firPct,  { green: 50, amber: 30 });
   colourMetric('#mGIR',     girPct,  { green: 50, amber: 30 });
   colourMetric('#mUpDown',  udPct,   { green: 40, amber: 20 });
   colourMetric('#mProcess', procPct, { green: 80, amber: 50 });
-  // Summary view metrics (same thresholds)
   colourMetric('#sFIR',     firPct,  { green: 50, amber: 30 });
   colourMetric('#sGIR',     girPct,  { green: 50, amber: 30 });
   colourMetric('#sUpDown',  udPct,   { green: 40, amber: 20 });
   colourMetric('#sProcess', procPct, { green: 80, amber: 50 });
-  // Putts — lower is better, apply to both setup and summary
   const puttsNum = totalPutts || null;
-  const puttsDisplay = puttsNum ?? '–';
+  const puttsDisplay = puttsNum ?? '\u2013';
   ['#mPutts', '#sPutts'].forEach(pid => {
     const puttsEl = $(pid);
     if (!puttsEl) return;
@@ -1010,11 +1019,8 @@ function _doComputeTotals() {
       }
     }
   });
-  // Summary metrics
-  set('#sScore', scored.length ? totalScore : '–');
-  set('#sPts',   totalPts !== null ? totalPts : '–');
-  // sPutts handled by colour block above
-  // sFIR, sGIR, sUpDown, sProcess handled by colourMetric above
+  set('#sScore', scored.length ? totalScore : '\u2013');
+  set('#sPts',   totalPts !== null ? totalPts : '\u2013');
   set('#sSand',  pct(sandMade, sandElig));
   renderHoleStrip();
   renderScorecard();
@@ -1062,7 +1068,6 @@ function renderProgressDots() {
     renderProgressDots();
     updateNavInfo();
   }));
-  // Scroll current dot into view
   const cur = wrap.querySelector('.current');
   if (cur) cur.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
 }
@@ -1083,21 +1088,21 @@ function renderScorecard() {
 
   tbody.innerHTML = holes.map(h => {
     const pts = stablefordPoints(h.score, h.par, h.shotAllowance);
-    const net = h.score !== null ? (h.score - h.shotAllowance) : '–';
+    const net = h.score !== null ? (h.score - h.shotAllowance) : '\u2013';
     const diff = h.confirmed ? h.score - h.par : null;
     const cls = diff === null ? '' : diff < 0 ? 'score-under' : diff > 0 ? 'score-over' : '';
     return `<tr>
       <td>${h.hole}</td>
-      <td style="color:var(--muted);">${h.yards || '–'}</td>
+      <td style="color:var(--muted);">${h.yards || '\u2013'}</td>
       <td>${h.par}</td>
       <td>${h.strokeIndex}</td>
       <td>${h.shotAllowance}</td>
-      <td class="${cls}">${h.confirmed ? h.score : '–'}</td>
-      <td>${h.confirmed ? net : '–'}</td>
-      <td>${h.confirmed ? (pts ?? '–') : '–'}</td>
-      <td>${h.confirmed ? (h.putts ?? '–') : '–'}</td>
-      <td>${h.fairway === 'hit' ? '✓' : h.fairway === 'left' ? 'L' : h.fairway === 'right' ? 'R' : '–'}</td>
-      <td>${h.gir === true ? '✓' : h.gir === false ? '✗' : '–'}</td>
+      <td class="${cls}">${h.confirmed ? h.score : '\u2013'}</td>
+      <td>${h.confirmed ? net : '\u2013'}</td>
+      <td>${h.confirmed ? (pts ?? '\u2013') : '\u2013'}</td>
+      <td>${h.confirmed ? (h.putts ?? '\u2013') : '\u2013'}</td>
+      <td>${h.fairway === 'hit' ? '\u2713' : h.fairway === 'left' ? 'L' : h.fairway === 'right' ? 'R' : '\u2013'}</td>
+      <td>${h.gir === true ? '\u2713' : h.gir === false ? '\u2717' : '\u2013'}</td>
       <td style="font-size:.7rem;color:var(--muted);text-align:left;max-width:100px;word-break:break-word;">${h.note || ''}</td>
     </tr>`;
   }).join('') + `<tr style="border-top:2px solid var(--border);font-weight:700;">
@@ -1105,10 +1110,10 @@ function renderScorecard() {
     <td style="color:var(--muted);">${totalYds}</td>
     <td>${totalPar}</td>
     <td colspan="2"></td>
-    <td>${anyScore ? totalScore : '–'}</td>
+    <td>${anyScore ? totalScore : '\u2013'}</td>
     <td></td>
-    <td>${anyScore ? totalPts : '–'}</td>
-    <td>${totalPutts || '–'}</td>
+    <td>${anyScore ? totalPts : '\u2013'}</td>
+    <td>${totalPutts || '\u2013'}</td>
     <td colspan="2"></td>
   </tr>`;
 }
@@ -1122,7 +1127,6 @@ function renderEntryHole(direction) {
   const pts = h.score !== null ? stablefordPoints(h.score, h.par, h.shotAllowance) : null;
   const ptsClass = pts === null ? 'zero' : pts >= 3 ? 'pos' : pts <= 1 ? 'neg' : 'zero';
 
-  // Score colour class
   let scoreCls = '';
   if (h.score !== null) {
     const diff = h.score - h.par;
@@ -1132,23 +1136,19 @@ function renderEntryHole(direction) {
     else if (diff >= 2) scoreCls = 'score-double';
   }
 
-  // Green tile helper: null=gray, true=green ✓, false=red ✗
-  // Tapping cycles: null → true → false → null
   const greenTile = (key, val, label, icon) => {
     const cls = val === true ? 'state-yes' : val === false ? 'state-no' : 'state-null';
-    const tileIcon = val === true ? '✓' : val === false ? '✗' : icon;
+    const tileIcon = val === true ? '\u2713' : val === false ? '\u2717' : icon;
     return `<button type="button" class="toggle-tile ${cls}" data-green-tile="${key}">
       <span class="tile-icon">${tileIcon}</span>
       <span>${label}</span>
     </button>`;
   };
 
-  // Only show fairway for par 4 & 5
   const showFairway = h.par >= 4;
 
   const html = `
     <div class="${direction === 1 ? 'slide-in-r' : direction === -1 ? 'slide-in-l' : ''}">
-      <!-- Hole header -->
       <div class="hole-header">
         <div>
           <div class="hole-num">Hole ${h.hole}</div>
@@ -1161,96 +1161,82 @@ function renderEntryHole(direction) {
         </div>
         <div class="stab-live ${ptsClass}">
           <span>Stableford</span>
-          <strong>${pts !== null ? pts : '–'}</strong>
+          <strong>${pts !== null ? pts : '\u2013'}</strong>
         </div>
       </div>
 
-      <!-- SCORE & PUTTS -->
       <div class="section-label">Score</div>
       <div class="stepper-row">
         <span class="stepper-label">Strokes</span>
         <div class="stepper ${scoreCls}" id="scoreStepWrap">
-          <button type="button" class="stepper-btn" data-stepper="score" data-dir="-1">−</button>
-          <span class="stepper-val ${h.score===null?'empty':''}" id="scoreVal">${h.score !== null ? h.score : '·'}</span>
+          <button type="button" class="stepper-btn" data-stepper="score" data-dir="-1">\u2212</button>
+          <span class="stepper-val ${h.score===null?'empty':''}" id="scoreVal">${h.score !== null ? h.score : '\u00b7'}</span>
           <button type="button" class="stepper-btn" data-stepper="score" data-dir="1">+</button>
         </div>
       </div>
       <div class="stepper-row" style="margin-top:.65rem;">
         <span class="stepper-label">Putts</span>
         <div class="stepper" id="puttsStepWrap">
-          <button type="button" class="stepper-btn" data-stepper="putts" data-dir="-1">−</button>
-          <span class="stepper-val ${h.putts===null?'empty':''}" id="puttsVal">${h.putts !== null ? h.putts : '·'}</span>
+          <button type="button" class="stepper-btn" data-stepper="putts" data-dir="-1">\u2212</button>
+          <span class="stepper-val ${h.putts===null?'empty':''}" id="puttsVal">${h.putts !== null ? h.putts : '\u00b7'}</span>
           <button type="button" class="stepper-btn" data-stepper="putts" data-dir="1">+</button>
         </div>
       </div>
 
-      <!-- YARDS TO GREEN -->
       <div class="section-label">Approach</div>
       <div class="yards-row">
         <span class="yards-label">Yds to green</span>
-        <input class="yards-input" type="number" inputmode="numeric" placeholder="–" value="${h.yardsToGreen||''}" id="yardsInput"/>
+        <input class="yards-input" type="number" inputmode="numeric" placeholder="\u2013" value="${h.yardsToGreen||''}" id="yardsInput"/>
         <span class="yards-unit">yds</span>
       </div>
 
-      <!-- FAIRWAY -->
       <div class="section-label">Tee shot</div>
       ${showFairway ? `<div class="fairway-selector">
         <button type="button" class="fwy-btn ${h.fairway==='left'?'active-left':''}" data-fwy="left">
-          <span class="fwy-icon">←</span><span>Left</span>
+          <span class="fwy-icon">\u2190</span><span>Left</span>
         </button>
         <button type="button" class="fwy-btn ${h.fairway==='hit'?'active-hit':''}" data-fwy="hit">
-          <span class="fwy-icon">✓</span><span>Fairway</span>
+          <span class="fwy-icon">\u2713</span><span>Fairway</span>
         </button>
         <button type="button" class="fwy-btn ${h.fairway==='right'?'active-right':''}" data-fwy="right">
-          <span class="fwy-icon">→</span><span>Right</span>
+          <span class="fwy-icon">\u2192</span><span>Right</span>
         </button>
-      </div>` : `<div class="fairway-selector"><div class="fwy-btn" style="opacity:.3;grid-column:1/-1;">Fairway N/A – par 3</div></div>`}
+      </div>` : `<div class="fairway-selector"><div class="fwy-btn" style="opacity:.3;grid-column:1/-1;">Fairway N/A \u2013 par 3</div></div>`}
 
-      <!-- GIR -->
       <div class="section-label">Green</div>
-      <!-- GIR: full width -->
       <div class="toggle-tiles" style="grid-template-columns:1fr; margin-bottom:.6rem;">
-        ${greenTile('gir', h.gir, 'Green in Regulation', '🟢')}
+        ${greenTile('gir', h.gir, 'Green in Regulation', '\ud83d\udfe2')}
       </div>
-      <!-- Up & Down + Sand Save: side by side, locked until GIR missed -->
       <div class="toggle-tiles">
         ${h.gir === false
-          ? greenTile('upDown', h.upDown, 'Up &amp; Down', '⛳')
+          ? greenTile('upDown', h.upDown, 'Up &amp; Down', '\u26f3')
           : `<div class="toggle-tile state-null" style="opacity:.28;">Up &amp; Down<br><span style="font-size:.7rem;color:var(--muted);">${h.gir === null ? '' : 'Hit green'}</span></div>`}
         ${h.gir === false
-          ? greenTile('sandSave', h.sandSave, 'Sand Save', '🏖️')
+          ? greenTile('sandSave', h.sandSave, 'Sand Save', '\ud83c\udfd6\ufe0f')
           : `<div class="toggle-tile state-null" style="opacity:.28;">Sand Save<br><span style="font-size:.7rem;color:var(--muted);">${h.gir === null ? '' : 'Hit green'}</span></div>`}
       </div>
 
-      <!-- PROCESS -->
       <div class="section-label">Process</div>
 
-      <!-- Big button + info icon -->
       <div class="process-row">
-        <button type="button" class="process-btn" id="processBigBtn" title="See It — Vividly visualise the shot before you play it. Pick a specific target, picture the ball flight, the trajectory, where it lands. Create a clear mental image rather than thinking about mechanics.
-
-Feel It — Take a practice swing that physically rehearses the shot you just visualised. The body rehearses the intention — you're encoding the feeling, not a technical checklist.
-
-Trust It — Step in and commit fully. Quieten the analytical mind, let the body do what it's trained to do, and swing without interference. This is the hardest part — resisting the urge to steer or guide.">
+        <button type="button" class="process-btn" id="processBigBtn">
           <span class="pb-icon"></span>
-          <span>SEE IT · FEEL IT · TRUST IT</span>
+          <span>SEE IT \u00b7 FEEL IT \u00b7 TRUST IT</span>
         </button>
         <button type="button" class="process-info-btn" id="processInfoBtn" aria-label="Show cues">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
         </button>
       </div>
 
-      <!-- Shot checkboxes — one per par stroke, revealed on button tap -->
       <div class="shot-checks" id="shotChecks">
         <span class="shot-check-label">Each shot</span>
         <div class="shot-check-boxes">
           ${h.shots.map((s, i) =>
-            `<button type="button" class="shot-cb ${s.done ? 'checked' : ''}" data-shot-cb="${i}" aria-label="Shot ${i+1}">✓</button>`
+            `<button type="button" class="shot-cb ${s.done ? 'checked' : ''}" data-shot-cb="${i}" aria-label="Shot ${i+1}">\u2713</button>`
           ).join('')}
         </div>
       </div>
 
-      <!-- Cue reference — hidden until info tapped -->
       <div class="process-reveal" id="processReveal">
         <div class="process-reveal-body">
           <table class="cue-table">
@@ -1265,42 +1251,38 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
           <div class="errors-panel">
             <div class="ep-head">Mental errors to avoid</div>
             <ul class="errors-list">
-              <li>Pressing – raising the stakes</li>
-              <li>Guiding – focus on non-targets</li>
-              <li>Over aiming – too precise</li>
-              <li>Jamming – over-thinking technique</li>
+              <li>Pressing \u2013 raising the stakes</li>
+              <li>Guiding \u2013 focus on non-targets</li>
+              <li>Over aiming \u2013 too precise</li>
+              <li>Jamming \u2013 over-thinking technique</li>
             </ul>
           </div>
         </div>
       </div>
 
-      <!-- NOTES -->
       <div class="section-label">Notes</div>
-      <textarea class="notes-input" id="holeNote" placeholder="Anything to remember about this hole…" rows="2">${h.note||''}</textarea>
+      <textarea class="notes-input" id="holeNote" placeholder="Anything to remember about this hole\u2026" rows="2">${h.note||''}</textarea>
 
     </div>`;
 
   const scroll = $('#entryScroll');
   scroll.innerHTML = html;
 
-  // Stepper events — direct DOM patch, no full re-render
   $$('[data-stepper]').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.stepper;
       const dir = Number(btn.dataset.dir);
       const h = state.holes[state.currentHole];
-      h.confirmed = true; // user has interacted
+      h.confirmed = true;
       const cur = h[key];
       const min = key === 'score' ? 1 : 0;
       const max = key === 'score' ? 15 : 10;
       h[key] = cur === null ? (dir === 1 ? h.par : h.par - 1 < min ? min : h.par - 1) : clamp(cur + dir, min, max);
 
-      // Patch just the value display
       const wrap = key === 'score' ? $('#scoreStepWrap') : $('#puttsStepWrap');
       const valEl = wrap?.querySelector('.stepper-val');
       if (valEl) { valEl.textContent = h[key]; valEl.classList.remove('empty'); }
 
-      // Patch score colour class on the stepper wrap
       if (key === 'score' && wrap) {
         wrap.classList.remove('score-eagle','score-birdie','score-bogey','score-double');
         const diff = h.score - h.par;
@@ -1310,11 +1292,10 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
         else if (diff >= 2) wrap.classList.add('score-double');
       }
 
-      // Patch live Stableford
       const stabEl = document.querySelector('.stab-live');
       if (stabEl) {
         const pts = h.score !== null ? stablefordPoints(h.score, h.par, h.shotAllowance) : null;
-        stabEl.querySelector('strong').textContent = pts !== null ? pts : '–';
+        stabEl.querySelector('strong').textContent = pts !== null ? pts : '\u2013';
         stabEl.className = 'stab-live ' + (pts === null ? 'zero' : pts >= 3 ? 'pos' : pts <= 1 ? 'neg' : 'zero');
       }
 
@@ -1322,7 +1303,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   });
 
-  // Big process button — toggles the checkbox row open/closed
   const processBigBtn = $('#processBigBtn');
   const shotChecks    = $('#shotChecks');
   if (processBigBtn && shotChecks) {
@@ -1331,7 +1311,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   }
 
-  // Helper: update big button colour based on ratio of ticked shots
   function updateProcessBtn() {
     if (!processBigBtn) return;
     const shots = state.holes[state.currentHole].shots;
@@ -1341,23 +1320,21 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     processBigBtn.classList.remove('done', 'proc-amber', 'proc-red');
     if (total === 0) { if (icon) icon.textContent = ''; return; }
     if (done === total) {
-      processBigBtn.classList.add('done');       // all ticked – teal
-      if (icon) icon.textContent = '✓';
+      processBigBtn.classList.add('done');
+      if (icon) icon.textContent = '\u2713';
     } else if (done / total >= 0.5) {
-      processBigBtn.classList.add('proc-amber'); // ≥50% – green
-      if (icon) icon.textContent = '✓';
+      processBigBtn.classList.add('proc-amber');
+      if (icon) icon.textContent = '\u2713';
     } else if (done > 0) {
-      processBigBtn.classList.add('proc-red');   // <50% but some – red
-      if (icon) icon.textContent = '–';
+      processBigBtn.classList.add('proc-red');
+      if (icon) icon.textContent = '\u2013';
     } else {
-      if (icon) icon.textContent = '';           // none ticked – neutral
+      if (icon) icon.textContent = '';
     }
   }
 
-  // Apply on render (state already loaded)
   updateProcessBtn();
 
-  // Individual shot checkboxes — pure DOM toggle, no re-render
   $$('[data-shot-cb]').forEach(btn => {
     btn.addEventListener('click', () => {
       const i = Number(btn.dataset.shotCb);
@@ -1369,7 +1346,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   });
 
-  // Info button toggles cue panel
   const infoBtn    = $('#processInfoBtn');
   const revealPane = $('#processReveal');
   if (infoBtn && revealPane) {
@@ -1379,14 +1355,12 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   }
 
-  // Fairway selector — direct DOM patch, no re-render
   $$('[data-fwy]').forEach(btn => {
     btn.addEventListener('click', () => {
       const h = state.holes[state.currentHole];
       h.confirmed = true;
       const val = btn.dataset.fwy;
       h.fairway = h.fairway === val ? null : val;
-      // Patch classes on all 3 fairway buttons
       $$('[data-fwy]').forEach(b => {
         const v = b.dataset.fwy;
         b.classList.remove('active-left','active-hit','active-right');
@@ -1396,10 +1370,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   });
 
-  // Green tiles: GIR, Up & Down, Sand Save
-  // Each cycles: null → true (green ✓) → false (red ✗) → null
-  // Up & Down and Sand Save are independent — no forced OR logic
-  // GIR hit/unset → clears upDown and sandSave
   $$('[data-green-tile]').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.greenTile;
@@ -1412,8 +1382,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
       if (girChanged && h.gir !== false) { h.upDown = null; h.sandSave = null; }
       if (key === 'upDown'   && h.upDown   === true) h.sandSave = null;
       if (key === 'sandSave' && h.sandSave === true) h.upDown   = null;
-      // GIR change shows/hides tiles — full re-render needed
-      // Up/Down or Sand Save change — patch just those two tiles directly
       if (girChanged) {
         renderEntryHole();
       } else {
@@ -1431,7 +1399,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   });
 
-  // Yards input
   const yardsInput = $('#yardsInput');
   if (yardsInput) {
     yardsInput.addEventListener('input', e => {
@@ -1439,7 +1406,6 @@ Trust It — Step in and commit fully. Quieten the analytical mind, let the body
     });
   }
 
-  // Notes
   const noteInput = $('#holeNote');
   if (noteInput) {
     noteInput.addEventListener('input', e => {
@@ -1505,24 +1471,20 @@ async function loadCourse(courseId, teeName) {
   const course = courseLibrary.find(c => c.id === courseId);
   if (!course) return;
 
-  // Set course immediately so UI responds
-  // Clear tee if switching to a different course
   if (state.selectedCourseId !== course.id) state.selectedTee = null;
   state.selectedCourseId = course.id;
   state.currentHole = 0;
   $('#courseSearch').value = course.name;
+  closeCourseDropdown();
   buildCoursePills();
 
-  // API course with no tees yet — show loading state then fetch
   if (course._clubId && Object.keys(course.tees).length === 0) {
-    // Show loading in tee dropdown
     const sel = $('#teeBox');
-    if (sel) { sel.innerHTML = '<option value="">Loading…</option>'; }
-    setCourseStatus('Fetching scorecard…');
+    if (sel) { sel.innerHTML = '<option value="">Loading\u2026</option>'; }
+    setCourseStatus('Fetching scorecard\u2026');
 
     const ok = await loadApiCourseScorecard(course);
     if (!ok) {
-      // Fallback placeholder tees
       course.tees = { Standard: {
         par: [4,4,4,3,4,4,5,3,4,4,3,4,4,3,5,5,4,4],
         yards: Array(18).fill(0),
@@ -1531,20 +1493,17 @@ async function loadCourse(courseId, teeName) {
     }
   }
 
-  // Now tees are populated — fill dropdown and build holes
   fillTeeOptions(course);
   if (teeName && course.tees[teeName]) { state.selectedTee = teeName; $('#teeBox').value = teeName; }
   if (state.selectedTee && course.tees[state.selectedTee]) {
     state.holes = makeHoleData(course, state.selectedTee);
   } else if (Object.keys(course.tees).length > 0) {
-    // Pick first available tee if selectedTee not found
     state.selectedTee = Object.keys(course.tees)[0];
     $('#teeBox').value = state.selectedTee;
     state.holes = makeHoleData(course, state.selectedTee);
   }
 
   computeTotals();
-  // Fetch weather for the new course location
   fetchWeather($('#datePlayed').value);
 }
 
@@ -1559,7 +1518,7 @@ function getApiKey() { return storeGet('golf-api-key') || ''; }
 function setApiKeyStatus() {
   const key = getApiKey();
   const statusEl = $('#apiKeyStatus');
-  if (statusEl) statusEl.textContent = key ? '✅ Connected' : 'No key – built-in data only';
+  if (statusEl) statusEl.textContent = key ? '\u2705 Connected' : 'No key \u2013 built-in data only';
   const input = $('#apiKeyInput');
   if (input && key) input.value = key;
 }
@@ -1581,8 +1540,7 @@ function setCourseStatus(msg, isError) {
 async function apiGet(path, retries = 1) {
   const res = await fetch(UK_GOLF_BASE + path, { headers: apiHeaders() });
   if (res.status === 429 && retries > 0) {
-    // Rate limited — wait 12s and retry once
-    setCourseStatus('Rate limit hit – retrying in 12s…');
+    setCourseStatus('Rate limit hit \u2013 retrying in 12s\u2026');
     await new Promise(r => setTimeout(r, 12000));
     return apiGet(path, retries - 1);
   }
@@ -1590,14 +1548,12 @@ async function apiGet(path, retries = 1) {
   return res.json();
 }
 
-// Known stroke indexes for Hallowes (API doesn't supply them)
 const KNOWN_SI = {
-  'a8130eaf-cb35-4f83-afdf-297b6de9d6ad': { // Hallowes club ID
+  'a8130eaf-cb35-4f83-afdf-297b6de9d6ad': {
     si: [5,13,3,17,1,9,7,15,11, 2,12,8,4,18,10,14,6,16]
   }
 };
 
-// Convert API course detail (tee_sets with holes) into our courseLibrary tee format
 function scorecardToTees(teesets, clubId) {
   const tees = {};
   const knownSI = KNOWN_SI[clubId]?.si || null;
@@ -1607,7 +1563,6 @@ function scorecardToTees(teesets, clubId) {
     tees[ts.name] = {
       par:         sorted.map(h => h.par),
       yards:       sorted.map(h => h.yardage || 0),
-      // Use known SI if available, else API value, else sequential
       strokeIndex: knownSI || sorted.map((h,i) => h.stroke_index || i+1),
       courseRating: ts.course_rating,
       slopeRating:  ts.slope_rating
@@ -1616,23 +1571,50 @@ function scorecardToTees(teesets, clubId) {
   return tees;
 }
 
+// ── Custom course search dropdown ─────────────────────────────────────
+function renderCourseDropdown(courses) {
+  const dd = $('#courseDropdown');
+  if (!dd) return;
+  if (!courses || courses.length === 0) {
+    dd.innerHTML = '<div class="course-dropdown-empty">No courses found</div>';
+    dd.classList.remove('hidden');
+    return;
+  }
+  dd.innerHTML = courses.map(c =>
+    `<div class="course-dropdown-item" data-dd-course="${c.id}">
+      <div class="course-dropdown-name">${c.name}</div>
+      ${c.location ? `<div class="course-dropdown-loc">${c.location}</div>` : ''}
+    </div>`
+  ).join('');
+  dd.classList.remove('hidden');
+  $$('[data-dd-course]').forEach(item => {
+    item.addEventListener('mousedown', e => e.preventDefault());
+    item.addEventListener('click', () => {
+      loadCourse(item.dataset.ddCourse);
+      closeCourseDropdown();
+    });
+  });
+}
+
+function closeCourseDropdown() {
+  const dd = $('#courseDropdown');
+  if (dd) dd.classList.add('hidden');
+}
+
 // Search clubs via UK Golf API, fall back to OSM
 async function searchCourses(query) {
   if (query.trim().length < 3) return;
   const key = getApiKey();
 
   if (key) {
-    // ── UK Golf API path ───────────────────────────────
     try {
-      setCourseStatus('Searching UK Golf database…');
+      setCourseStatus('Searching UK Golf database\u2026');
       const data = await apiGet(`/clubs?search=${encodeURIComponent(query)}&limit=8`);
       const clubs = data.clubs || data.data || data || [];
       if (!Array.isArray(clubs) || clubs.length === 0) {
-        setCourseStatus('No clubs found – try a different spelling');
+        setCourseStatus('No clubs found \u2013 try a different spelling');
         return;
       }
-      // Store lightweight stubs; full scorecard loaded on selection
-      const dl = $('#courseSuggestions');
       const existingIds = new Set(courseLibrary.map(c => c._apiId).filter(Boolean));
       clubs.forEach(club => {
         if (!club.id || existingIds.has(club.id)) return;
@@ -1644,19 +1626,18 @@ async function searchCourses(query) {
           _lon: club.longitude,
           name: club.name,
           location: [club.county, 'England'].filter(Boolean).join(', '),
-          tees: {} // populated on load
+          tees: {}
         });
         existingIds.add(club.id);
       });
-      dl.innerHTML = courseLibrary.map(c => `<option value="${c.name}">${c.location || ''}</option>`).join('');
+      renderCourseDropdown(courseLibrary.filter(c => c.name.toLowerCase().includes(query.toLowerCase())));
       buildCoursePills();
       setCourseStatus(`${clubs.length} club${clubs.length !== 1 ? 's' : ''} found`);
     } catch(e) {
       console.warn('UK Golf API search failed', e);
-      setCourseStatus('API search failed – check your key', true);
+      setCourseStatus('API search failed \u2013 check your key', true);
     }
   } else {
-    // ── OSM fallback ───────────────────────────────────
     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&q=${encodeURIComponent(query+' golf course')}`;
     try {
       const data = await fetch(url, { headers: { Accept: 'application/json' } }).then(r => r.json());
@@ -1670,28 +1651,23 @@ async function searchCourses(query) {
           names.add(name);
         }
       });
-      const dl = $('#courseSuggestions');
-      dl.innerHTML = courseLibrary.map(c => `<option value="${c.name}">${c.location}</option>`).join('');
+      renderCourseDropdown(courseLibrary.filter(c => c.name.toLowerCase().includes(query.toLowerCase()) || c.location?.toLowerCase().includes(query.toLowerCase())));
       buildCoursePills();
     } catch(e) { console.warn('OSM course search failed', e); }
   }
 }
 
-// Load full scorecard for an API club
-// Uses GET /clubs/{id} (courses list) then GET /courses/{id} (all tees + holes in one call)
 async function loadApiCourseScorecard(courseEntry) {
   if (!courseEntry._clubId) return false;
   try {
-    setCourseStatus('Loading course data…');
+    setCourseStatus('Loading course data\u2026');
     const allTees = {};
 
     if (courseEntry._courseId) {
-      // Fast path: we already know the course ID (e.g. Hallowes)
       const courseDetail = await apiGet(`/courses/${courseEntry._courseId}`);
       const tees = scorecardToTees(courseDetail.tee_sets || [], courseEntry._clubId);
       Object.assign(allTees, tees);
     } else {
-      // Generic path: fetch club to discover course IDs, then fetch each
       const clubData = await apiGet(`/clubs/${courseEntry._clubId}`);
       const courses = clubData.courses || [];
       if (courses.length === 0) { setCourseStatus('No course data available'); return false; }
@@ -1699,18 +1675,18 @@ async function loadApiCourseScorecard(courseEntry) {
         const courseDetail = await apiGet(`/courses/${c.id}`);
         const tees = scorecardToTees(courseDetail.tee_sets || [], courseEntry._clubId);
         for (const [tName, tData] of Object.entries(tees)) {
-          const key = courses.length > 1 ? `${c.name} – ${tName}` : tName;
+          const key = courses.length > 1 ? `${c.name} \u2013 ${tName}` : tName;
           allTees[key] = tData;
         }
       }
     }
     if (Object.keys(allTees).length === 0) { setCourseStatus('No tee data available'); return false; }
     courseEntry.tees = allTees;
-    setCourseStatus(`✓ ${Object.keys(allTees).length} tee${Object.keys(allTees).length !== 1 ? 's' : ''} loaded`);
+    setCourseStatus(`\u2713 ${Object.keys(allTees).length} tee${Object.keys(allTees).length !== 1 ? 's' : ''} loaded`);
     return true;
   } catch(e) {
     console.warn('Scorecard fetch failed', e);
-    setCourseStatus('Could not load scorecard – check API key', true);
+    setCourseStatus('Could not load scorecard \u2013 check API key', true);
     return false;
   }
 }
@@ -1724,7 +1700,7 @@ function attachApiKeyEvents() {
     storeSet('golf-api-key', val);
     setApiKeyStatus();
     $('#apiKeyPanel').classList.add('hidden');
-    if (val) setCourseStatus('API key saved – search for any UK course now');
+    if (val) setCourseStatus('API key saved \u2013 search for any UK course now');
   });
   $('#clearApiKey').addEventListener('click', () => {
     storeSet('golf-api-key', '');
@@ -1739,7 +1715,6 @@ function attachApiKeyEvents() {
 ═══════════════════════════════════════════════════════════ */
 function dl(filename, text, type='text/plain') {
   const blob = new Blob([text], { type });
-  // Use native share sheet on mobile when available (prompts apps like Excel)
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type })] })) {
     navigator.share({ files: [new File([blob], filename, { type })] }).catch(() => dlFallback(filename, blob));
   } else {
@@ -1796,22 +1771,18 @@ function themeInit() {
    EVENTS
 ═══════════════════════════════════════════════════════════ */
 function attachEvents() {
-  // Tab bar
   $$('.tab-btn').forEach(b => b.addEventListener('click', () => {
     if (b.dataset.tab === 'entry' && !state.holes.length) { alert('Load a course first'); return; }
     switchView(b.dataset.tab);
   }));
 
-  // Date change — fetch weather for selected course
   $('#datePlayed').addEventListener('change', e => fetchWeather(e.target.value));
 
-  // Start round button
   $('#startRoundBtn').addEventListener('click', () => {
     if (!state.holes.length) { alert('Load a course first'); return; }
     switchView('entry');
   });
 
-  // Entry navigation
   $('#prevHoleBtn').addEventListener('click', () => {
     if (state.currentHole === 0) return;
     const dir = -1;
@@ -1821,11 +1792,9 @@ function attachEvents() {
     updateNavInfo();
   });
   $('#nextHoleBtn').addEventListener('click', () => {
-    // Confirm current hole defaults when moving on
     if (state.holes[state.currentHole]) state.holes[state.currentHole].confirmed = true;
     if (state.currentHole >= state.holes.length - 1) {
       switchView('summary');
-      // Auto-save on round completion
       saveRoundToHistory().catch(() => {});
       return;
     }
@@ -1837,7 +1806,6 @@ function attachEvents() {
     computeTotals();
   });
 
-  // Tee box change
   $('#teeBox').addEventListener('change', () => {
     const c = getSelectedCourse(); if (!c) return;
     state.selectedTee = $('#teeBox').value;
@@ -1847,22 +1815,31 @@ function attachEvents() {
     fetchWeather($('#datePlayed').value);
   });
 
-  // Handicap change
   $('#handicap').addEventListener('change', () => {
     const c = getSelectedCourse(); if (!c || !state.selectedTee) return;
     state.holes = makeHoleData(c, state.selectedTee).map((fresh,i) => ({ ...fresh, ...state.holes[i], shotAllowance:fresh.shotAllowance }));
     computeTotals();
   });
 
-  // Course search
+  // Course search — custom dropdown (replaces native datalist)
   let st;
-  $('#courseSearch').addEventListener('input', e => { clearTimeout(st); st = setTimeout(()=>searchCourses(e.target.value),300); });
-  $('#courseSearch').addEventListener('change', e => {
-    const match = courseLibrary.find(c => c.name.toLowerCase()===e.target.value.trim().toLowerCase() || c.name.toLowerCase().includes(e.target.value.trim().toLowerCase()));
-    if (match) loadCourse(match.id);
+  const _csi = $('#courseSearch');
+  _csi.addEventListener('input', e => {
+    const v = e.target.value.trim();
+    if (v.length < 2) { closeCourseDropdown(); return; }
+    clearTimeout(st); st = setTimeout(() => searchCourses(v), 300);
+  });
+  _csi.addEventListener('focus', () => {
+    const dd = $('#courseDropdown');
+    if (dd && dd.children.length > 0) dd.classList.remove('hidden');
+  });
+  _csi.addEventListener('blur', () => {
+    setTimeout(closeCourseDropdown, 200);
+  });
+  _csi.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeCourseDropdown();
   });
 
-  // Export / clear
   ['#saveJson','#saveJson2'].forEach(id => { const el=$(id); if(el) el.addEventListener('click',exportJson); });
   ['#exportCsv','#exportCsv2'].forEach(id => { const el=$(id); if(el) el.addEventListener('click',exportCsv); });
   ['#saveToHistory','#saveToHistory2'].forEach(id => { const el=$(id); if(el) el.addEventListener('click',saveRoundToHistory); });
@@ -1873,16 +1850,11 @@ function attachEvents() {
     state.currentHole = 0;
     computeTotals();
   });
-
-  // Load Hallowes shortcut
-  // (pills handle it, this is fallback)
 }
 
 /* ════════════════════════════════════════════════════════════
    SAVE TO HISTORY
 ═══════════════════════════════════════════════════════════ */
-// URL of the history backend — update after deploying
-// Points to the golf-performance backend proxy
 const HISTORY_API = 'https://sites.pplx.app/sites/proxy/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcmVmaXgiOiJ3ZWIvZGlyZWN0LWZpbGVzL2NvbXB1dGVyLzg1N2M4MmZkLTEzM2QtNDJkMC1hNDBmLWEyNjE1ZDhmMDdhNy9nb2xmLWhpc3RvcnkvIiwic2lkIjoiODU3YzgyZmQtMTMzZC00MmQwLWE0MGYtYTI2MTVkOGYwN2E3IiwiZXhwIjoxNzc1MjY3NTMwfQ.MCBM8ym4IaS8GJeYGFU8om5q4iQDV7jZKhIwQQSrZoY/web/direct-files/computer/857c82fd-133d-42d0-a40f-a2615d8f07a7/golf-history/__PORT_5000__';
 
 async function saveRoundToHistory() {
@@ -1906,7 +1878,6 @@ async function saveRoundToHistory() {
   const procDone   = h.reduce((a,x)=>a+x.shots.filter(s=>s.done).length,0);
   const procMax    = h.reduce((a,x)=>a+x.shots.length,0);
 
-  // Grab weather from strip
   const strip = $('#weatherStrip');
   let weatherDesc='',weatherTemp=null,weatherWind=null,weatherDir='',weatherRain=null,weatherPressure=null;
   if (strip && !strip.classList.contains('hidden')) {
@@ -1918,7 +1889,7 @@ async function saveRoundToHistory() {
       const m = t.match(/([\d.]+)/);
       if (!m) return;
       const v = parseFloat(m[1]);
-      if (t.includes('°C')) weatherTemp = v;
+      if (t.includes('\u00b0C')) weatherTemp = v;
       else if (t.includes('mm')) weatherRain = v;
       else if (t.includes('mph') && !weatherWind) { weatherWind = v; const d = t.match(/[NSEW]+/); if(d) weatherDir = d[0]; }
       else if (t.includes('hPa')) weatherPressure = v;
@@ -1943,7 +1914,7 @@ async function saveRoundToHistory() {
     holesJson: JSON.stringify(h)
   };
 
-  statusEls.forEach(el => { el.textContent = 'Saving…'; el.style.color = 'var(--muted)'; });
+  statusEls.forEach(el => { el.textContent = 'Saving\u2026'; el.style.color = 'var(--muted)'; });
   try {
     const res = await fetch(HISTORY_API + '/api/rounds', {
       method: 'POST',
@@ -1951,10 +1922,10 @@ async function saveRoundToHistory() {
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error(await res.text());
-    statusEls.forEach(el => { el.textContent = '✓ Saved to history'; el.style.color = 'var(--success)'; });
+    statusEls.forEach(el => { el.textContent = '\u2713 Saved to history'; el.style.color = 'var(--success)'; });
     setTimeout(() => statusEls.forEach(el => el.textContent = ''), 3000);
   } catch(e) {
-    statusEls.forEach(el => { el.textContent = 'Save failed – check history app URL'; el.style.color = 'var(--danger)'; });
+    statusEls.forEach(el => { el.textContent = 'Save failed \u2013 check history app URL'; el.style.color = 'var(--danger)'; });
     console.error('Save failed', e);
   }
 }
@@ -1973,23 +1944,22 @@ const WMO = {
   95:'Thunderstorm', 96:'Thunderstorm + hail', 99:'Thunderstorm + heavy hail'
 };
 const WMO_ICON = {
-  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
-  45:'🌫️', 48:'🌫️',
-  51:'🌧️', 53:'🌧️', 55:'🌧️',
-  61:'🌧️', 63:'🌧️', 65:'🌧️',
-  71:'🌨️', 73:'🌨️', 75:'🌨️', 77:'🌨️',
-  80:'🌦️', 81:'🌦️', 82:'🌦️',
-  85:'❄️', 86:'❄️',
-  95:'⚡', 96:'⚡', 99:'⚡'
+  0:'\u2600\ufe0f', 1:'\ud83c\udf24\ufe0f', 2:'\u26c5', 3:'\u2601\ufe0f',
+  45:'\ud83c\udf2b\ufe0f', 48:'\ud83c\udf2b\ufe0f',
+  51:'\ud83c\udf27\ufe0f', 53:'\ud83c\udf27\ufe0f', 55:'\ud83c\udf27\ufe0f',
+  61:'\ud83c\udf27\ufe0f', 63:'\ud83c\udf27\ufe0f', 65:'\ud83c\udf27\ufe0f',
+  71:'\ud83c\udf28\ufe0f', 73:'\ud83c\udf28\ufe0f', 75:'\ud83c\udf28\ufe0f', 77:'\ud83c\udf28\ufe0f',
+  80:'\ud83c\udf26\ufe0f', 81:'\ud83c\udf26\ufe0f', 82:'\ud83c\udf26\ufe0f',
+  85:'\u2744\ufe0f', 86:'\u2744\ufe0f',
+  95:'\u26a1', 96:'\u26a1', 99:'\u26a1'
 };
 
 function degreesToCompass(deg) {
-  const dirs = ['N','⁠NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  const dirs = ['N','\u2060NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
   return dirs[Math.round(deg / 22.5) % 16];
 }
 
 function compassArrow(deg) {
-  // Returns an SVG arrow rotated to point in wind direction
   return `<svg width="18" height="18" viewBox="0 0 24 24" style="transform:rotate(${deg}deg);display:inline-block;vertical-align:middle;" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="7 10 12 5 17 10"/></svg>`;
 }
 
@@ -1997,9 +1967,8 @@ async function fetchWeather(date) {
   const strip = $('#weatherStrip');
   if (!strip || !date) return;
 
-  // Use selected course coordinates, fall back to Hallowes
   const courseEntry = courseLibrary.find(c => c.id === state.selectedCourseId);
-  let lat = 53.29296, lon = -1.4615943; // Hallowes default
+  let lat = 53.29296, lon = -1.4615943;
   let locationName = 'Hallowes Golf Club';
   if (courseEntry) {
     if (courseEntry._lat && courseEntry._lon) {
@@ -2010,7 +1979,7 @@ async function fetchWeather(date) {
   }
 
   strip.classList.remove('hidden');
-  strip.innerHTML = `<span class="weather-loading">Getting weather at ${locationName}…</span>`;
+  strip.innerHTML = `<span class="weather-loading">Getting weather at ${locationName}\u2026</span>`;
 
   try {
     const today = new Date().toISOString().slice(0,10);
@@ -2027,7 +1996,7 @@ async function fetchWeather(date) {
     }
 
     const code    = d.weather_code[0];
-    const icon    = WMO_ICON[code] || '🌡️';
+    const icon    = WMO_ICON[code] || '\ud83c\udf21\ufe0f';
     const desc    = WMO[code] || 'Unknown';
     const tMax    = Math.round(d.temperature_2m_max[0]);
     const tMin    = Math.round(d.temperature_2m_min[0]);
@@ -2037,7 +2006,6 @@ async function fetchWeather(date) {
     const windDeg = d.wind_direction_10m_dominant[0];
     const compass = degreesToCompass(windDeg);
     const arrow   = compassArrow(windDeg);
-    // Pressure: use midday hourly value (index 12 = 12:00 local time)
     const pressureArr = data.hourly?.surface_pressure || [];
     const pressure = pressureArr[12] ? Math.round(pressureArr[12]) : null;
     const tag     = isPast
@@ -2050,18 +2018,17 @@ async function fetchWeather(date) {
         <div class="weather-main" style="display:flex;align-items:center;gap:.4rem;">${desc}${tag}</div>
         <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem;">${locationName}</div>
         <div class="weather-meta">
-          <span class="weather-chip">🌡️ <strong>${tMax}°C</strong>&thinsp;/&thinsp;${tMin}°C</span>
-          <span class="weather-chip">💧 <strong>${rain}mm</strong></span>
+          <span class="weather-chip">\ud83c\udf21\ufe0f <strong>${tMax}\u00b0C</strong>&thinsp;/&thinsp;${tMin}\u00b0C</span>
+          <span class="weather-chip">\ud83d\udca7 <strong>${rain}mm</strong></span>
           <span class="weather-chip" style="align-items:center;gap:.2rem;">${arrow}<strong>${wind}mph</strong>&thinsp;${compass} <span style="color:var(--faint);">gusts ${gusts}</span></span>
-          ${pressure !== null ? `<span class="weather-chip">📊 <strong>${pressure}</strong> hPa</span>` : ''}
+          ${pressure !== null ? `<span class="weather-chip">\ud83d\udcca <strong>${pressure}</strong> hPa</span>` : ''}
         </div>
       </div>`;
 
-    // Also update the compact topbar pill
     const pill = $('#topbarWeather');
     if (pill) {
       pill.classList.remove('hidden');
-      pill.innerHTML = `<span class="tw-icon">${icon}</span><span>${tMax}°C</span><span style="color:var(--muted);font-weight:400;display:flex;align-items:center;">${arrow}<span>${wind}</span></span>`;
+      pill.innerHTML = `<span class="tw-icon">${icon}</span><span>${tMax}\u00b0C</span><span style="color:var(--muted);font-weight:400;display:flex;align-items:center;">${arrow}<span>${wind}</span></span>`;
     }
   } catch(e) {
     strip.innerHTML = '<span class="weather-loading">Weather unavailable</span>';
@@ -2076,7 +2043,6 @@ const DEFAULT_PLAYERS = [
   { id: 'p-doctor', name: 'Doctor', handicap: 11 }
 ];
 
-// Persistent storage — localStorage with in-memory fallback
 const _memStore = {};
 const store = (() => { try { const s = window['local'+'Storage']; s.setItem('_t','1'); s.removeItem('_t'); return s; } catch { return null; } })();
 function storeGet(k)    { try { return store ? store.getItem(k) : (_memStore[k] ?? null); } catch { return _memStore[k] ?? null; } }
@@ -2125,9 +2091,7 @@ function renderPlayerChips() {
       if (!player) return;
       activePlayerId = pid;
       saveActivePlayer(pid);
-      // Update handicap field
       $('#handicap').value = player.handicap;
-      // Recalculate shot allowances
       const c = getSelectedCourse();
       if (c && state.selectedTee) {
         state.holes = makeHoleData(c, state.selectedTee).map((fresh, i) => ({
@@ -2193,7 +2157,6 @@ function attachPlayerEvents() {
     const newPlayer = { id: 'p-' + Date.now(), name, handicap: hcap };
     players.push(newPlayer);
     savePlayers(players);
-    // Auto-select the new player
     activePlayerId = newPlayer.id;
     saveActivePlayer(activePlayerId);
     $('#handicap').value = hcap;
@@ -2209,7 +2172,6 @@ function attachPlayerEvents() {
     $('#newPlayerName').value = '';
     $('#newPlayerHcap').value = '';
   });
-  // Also allow Enter key in name/hcap fields
   ['#newPlayerName','#newPlayerHcap'].forEach(sel => {
     $(sel).addEventListener('keydown', e => { if (e.key === 'Enter') $('#savePlayer').click(); });
   });
@@ -2221,40 +2183,33 @@ function attachPlayerEvents() {
 (async () => {
   themeInit();
   $('#datePlayed').value = new Date().toISOString().slice(0,10);
-  // Pre-load active player handicap
   const _activePlayer = players.find(p => p.id === activePlayerId);
   if (_activePlayer) $('#handicap').value = _activePlayer.handicap;
   renderPlayerChips();
   attachPlayerEvents();
-  // Pre-bake API key if not already stored
   if (!storeGet('golf-api-key')) {
     storeSet('golf-api-key', '9f4dda10aemsh3329ee04376b39ap15bd9bjsn3c69163c14b0');
   }
   setApiKeyStatus();
   attachApiKeyEvents();
-  // Load Hallowes with built-in White tee immediately
   await loadCourse('hallowes', 'White');
   attachEvents();
-  // Fetch weather for today at the default course
   fetchWeather($('#datePlayed').value);
-  // Silently enrich Hallowes with all tees from API in background
   if (getApiKey()) {
     const _hw = courseLibrary.find(c => c.id === 'hallowes');
     if (_hw && !_hw._apiLoaded) {
       loadApiCourseScorecard(_hw).then(ok => {
         if (ok) {
           _hw._apiLoaded = true;
-          // Only update tee dropdown if Hallowes is still the selected course
           if (state.selectedCourseId === 'hallowes') {
             fillTeeOptions(_hw);
-            // Rebuild holes with enriched tee data (preserves selected tee)
             if (state.selectedTee && _hw.tees[state.selectedTee]) {
               state.holes = makeHoleData(_hw, state.selectedTee).map((fresh, i) => ({
                 ...fresh, ...state.holes[i], shotAllowance: fresh.shotAllowance
               }));
               computeTotals();
             }
-            setCourseStatus('✓ All tees loaded – Black, White, Yellow, Blue, Red');
+            setCourseStatus('\u2713 All tees loaded \u2013 Black, White, Yellow, Blue, Red');
           }
         }
       });
@@ -2262,7 +2217,6 @@ function attachPlayerEvents() {
   }
 })();
 
-// Register service worker for offline/PWA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
