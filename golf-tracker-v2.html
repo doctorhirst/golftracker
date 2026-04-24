@@ -600,6 +600,67 @@
     .topbar-weather.hidden { display: none; }
     .topbar-weather .tw-icon { font-size: .95rem; }
 
+    /* ── Yards hero input ───────────────────────────────────── */
+    .yards-hero {
+      background: var(--surface); border: 2px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+    }
+    .yards-hero-label {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--muted); text-align: center;
+      padding: .55rem 0 0; display: block;
+    }
+    .yards-hero-row {
+      display: flex; align-items: center;
+    }
+    .yards-hero-btn {
+      width: 64px; height: 72px; display: grid; place-items: center;
+      font-size: 1.8rem; font-weight: 300; color: var(--muted);
+      transition: background 120ms; flex-shrink: 0; line-height: 1;
+    }
+    .yards-hero-btn:active { background: var(--surface2); }
+    .yards-hero-input {
+      flex: 1; border: none; background: transparent;
+      font-size: 3rem; font-weight: 900; text-align: center;
+      font-variant-numeric: tabular-nums; padding: .1rem 0 .4rem;
+      min-height: 72px; line-height: 1;
+    }
+    .yards-hero-input:focus { outline: none; }
+    .yards-hero-input::placeholder { color: var(--faint); font-weight: 300; }
+    .yards-hero-unit {
+      font-size: .78rem; color: var(--muted); font-weight: 700;
+      text-align: center; padding-bottom: .55rem; display: block;
+    }
+
+    /* ── Compass dial layout ────────────────────────────────── */
+    .dial-layout {
+      display: grid; grid-template-columns: 164px 1fr; gap: .65rem;
+      align-items: start; margin-top: .5rem;
+    }
+    .dial-col { flex-shrink: 0; }
+    .cond-right { min-width: 0; display: flex; flex-direction: column; gap: .3rem; }
+    .plays-like-big {
+      background: var(--primary-bg); border: 2px solid var(--primary);
+      border-radius: var(--r-md); padding: .6rem .5rem; text-align: center;
+      margin-top: .15rem;
+    }
+    .plays-like-big .pl-label {
+      font-size: .62rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--muted); display: block; margin-bottom: .1rem;
+    }
+    .plays-like-big .pl-num {
+      font-size: 2rem; font-weight: 900; line-height: 1;
+      font-variant-numeric: tabular-nums; color: var(--primary-h);
+    }
+    .plays-like-big .pl-diff {
+      font-size: .78rem; font-weight: 700; color: var(--muted);
+      display: block; margin-top: .1rem;
+    }
+    .plays-like-big.pl-longer { background: var(--warn-bg); border-color: var(--warn); }
+    .plays-like-big.pl-longer .pl-num { color: var(--warn); }
+    .plays-like-big.pl-shorter { background: var(--success-bg); border-color: var(--success); }
+    .plays-like-big.pl-shorter .pl-num { color: var(--success); }
+
     /* ── Conditions / plays-like panel ─────────────────────── */
     .compass-btn {
       width: 100%; min-height: 52px; border-radius: var(--r-md);
@@ -1245,6 +1306,63 @@ function calcConditionsEffect(holeBearingDeg, shotYards, wind) {
   };
 }
 
+function buildCompassDial(holeBearing, windDirDeg, windSpeedMph) {
+  const sz = 160, cx = 80, cy = 80, R = 64, Ri = 40, Rc = 22;
+  // relDeg: where wind comes FROM, relative to hole direction. 0 = headwind, 180 = tailwind.
+  const relDeg = (windDirDeg - holeBearing + 360) % 360;
+  const svgRad = (relDeg - 90) * Math.PI / 180; // SVG: 0=right, so -90 maps 0-up
+  const tx = (cx + R  * Math.cos(svgRad)).toFixed(1);
+  const ty = (cy + R  * Math.sin(svgRad)).toFixed(1);
+  const hx = (cx + Ri * Math.cos(svgRad)).toFixed(1);
+  const hy = (cy + Ri * Math.sin(svgRad)).toFixed(1);
+  // Arrowhead
+  const aa = Math.atan2(hy - ty, hx - tx);
+  const as = 8;
+  const p1x = (hx - as*Math.cos(aa-0.38)).toFixed(1), p1y = (hy - as*Math.sin(aa-0.38)).toFixed(1);
+  const p2x = (hx - as*Math.cos(aa+0.38)).toFixed(1), p2y = (hy - as*Math.sin(aa+0.38)).toFixed(1);
+  // Sector arc ±40°
+  const a1r = (relDeg - 40 - 90) * Math.PI / 180, a2r = (relDeg + 40 - 90) * Math.PI / 180;
+  const sx1 = (cx + R*Math.cos(a1r)).toFixed(1), sy1 = (cy + R*Math.sin(a1r)).toFixed(1);
+  const sx2 = (cx + R*Math.cos(a2r)).toFixed(1), sy2 = (cy + R*Math.sin(a2r)).toFixed(1);
+  const arc = 'M ' + cx + ' ' + cy + ' L ' + sx1 + ' ' + sy1
+            + ' A ' + R + ' ' + R + ' 0 0 1 ' + sx2 + ' ' + sy2 + ' Z';
+  // Colors
+  const hc = Math.cos(relDeg * Math.PI / 180);
+  const isH = hc > 0.25, isT = hc < -0.25;
+  const arrowClr  = isH ? '#c46000' : isT ? '#3a7020' : '#9b978f';
+  const secClr    = isH ? 'rgba(196,96,0,.18)' : isT ? 'rgba(58,112,32,.18)' : 'rgba(155,151,143,.1)';
+  const lblClr    = isH ? '#c46000' : isT ? '#3a7020' : '#9b978f';
+  const lbl       = isH ? 'HEADWIND' : isT ? 'TAILWIND' : 'CROSSWIND';
+  // Tick marks
+  let ticks = '';
+  for (let i = 0; i < 8; i++) {
+    const a = (i * 45 - 90) * Math.PI / 180;
+    const maj = i % 2 === 0, r2 = R - (maj ? 8 : 5);
+    ticks += '<line x1="' + (cx+R*Math.cos(a)).toFixed(1) + '" y1="' + (cy+R*Math.sin(a)).toFixed(1)
+           + '" x2="' + (cx+r2*Math.cos(a)).toFixed(1) + '" y2="' + (cy+r2*Math.sin(a)).toFixed(1)
+           + '" stroke="var(--border)" stroke-width="' + (maj?1.5:1) + '" stroke-linecap="round"/>';
+  }
+  return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '" style="overflow:visible">'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>'
+    + '<path d="' + arc + '" fill="' + secClr + '"/>'
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="var(--border)" stroke-width="1.5"/>'
+    + ticks
+    // Hole arrow always at 12 o'clock
+    + '<line x1="' + cx + '" y1="' + (cy-Rc) + '" x2="' + cx + '" y2="' + (cy-R+13) + '" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round"/>'
+    + '<polygon points="' + cx + ',' + (cy-R+5) + ' ' + (cx-5) + ',' + (cy-R+16) + ' ' + (cx+5) + ',' + (cy-R+16) + '" fill="var(--primary)"/>'
+    + '<text x="' + cx + '" y="' + (cy-R-6) + '" text-anchor="middle" fill="var(--primary)" font-size="8" font-weight="700" font-family="system-ui">HOLE</text>'
+    // Center circle
+    + '<circle cx="' + cx + '" cy="' + cy + '" r="' + Rc + '" fill="var(--surface)" stroke="var(--divider)" stroke-width="1"/>'
+    // Wind arrow
+    + '<line x1="' + tx + '" y1="' + ty + '" x2="' + hx + '" y2="' + hy + '" stroke="' + arrowClr + '" stroke-width="3.5" stroke-linecap="round"/>'
+    + '<polygon points="' + hx + ',' + hy + ' ' + p1x + ',' + p1y + ' ' + p2x + ',' + p2y + '" fill="' + arrowClr + '"/>'
+    // Speed + label
+    + '<text x="' + cx + '" y="' + (cy+5) + '" text-anchor="middle" fill="var(--text)" font-size="15" font-weight="900" font-family="system-ui">' + windSpeedMph + '</text>'
+    + '<text x="' + cx + '" y="' + (cy+16) + '" text-anchor="middle" fill="var(--muted)" font-size="8" font-family="system-ui">mph</text>'
+    + '<text x="' + cx + '" y="' + (sz-5) + '" text-anchor="middle" fill="' + lblClr + '" font-size="9" font-weight="700" font-family="system-ui">' + lbl + '</text>'
+    + '</svg>';
+}
+
 function buildConditionsPanel(h) {
   const hasBearing = h.holeBearing !== null;
   const hasYards   = h.yardsToGreen && Number(h.yardsToGreen) > 0;
@@ -1255,63 +1373,76 @@ function buildConditionsPanel(h) {
     ? '\uD83E\uDDED ' + Math.round(h.holeBearing) + '\u00b0 \u2013 tap to re-capture'
     : '\uD83E\uDDED Point phone down fairway \u2192';
   const btnCls = 'compass-btn' + (hasBearing ? ' compass-active' : '');
+  const btn = '<button type="button" class="' + btnCls + '" id="compassBtn">' + btnLabel + '</button>';
 
-  let inner = '';
-  if (hasBearing && hasYards && hasWind) {
-    const e = calcConditionsEffect(h.holeBearing, Number(h.yardsToGreen), wind);
-    let rows = '';
-    if (e.headwindMph > 1) {
-      const icon = e.isHeadwind ? '\u2191' : '\u2193';
-      const lbl  = e.isHeadwind ? 'Headwind' : 'Tailwind';
-      const cls  = e.isHeadwind ? 'cond-longer' : 'cond-shorter';
-      const sgn  = e.isHeadwind ? '+' : '-';
-      rows += '<div class="cond-row"><span class="cond-icon">' + icon + '</span>'
-        + '<span class="cond-label">' + lbl + ' ' + e.headwindMph + 'mph</span>'
-        + '<span class="cond-val ' + cls + '">' + sgn + e.headwindYds + ' yds</span></div>';
-    }
-    if (e.crosswindMph > 2) {
-      const aim = e.crosswindFromRight ? 'aim left' : 'aim right';
-      rows += '<div class="cond-row"><span class="cond-icon">\u2194</span>'
-        + '<span class="cond-label">Crosswind ' + e.crosswindMph + 'mph</span>'
-        + '<span class="cond-val cond-neutral">' + aim + '</span></div>';
-    }
-    if (e.tempPct > 0) {
-      rows += '<div class="cond-row"><span class="cond-icon">\uD83C\uDF21\uFE0F</span>'
-        + '<span class="cond-label">Cold (' + e.tempC + '\u00b0C)</span>'
-        + '<span class="cond-val cond-longer">+' + e.tempYds + ' yds</span></div>';
-    }
-    if (e.rainPct > 0) {
-      rows += '<div class="cond-row"><span class="cond-icon">\uD83D\uDCA7</span>'
-        + '<span class="cond-label">Rain (' + e.rainMm + 'mm)</span>'
-        + '<span class="cond-val cond-longer">+' + e.rainYds + ' yds</span></div>';
-    }
-    if (e.pressureHpa && Math.abs(e.pressurePct) >= 0.5) {
-      const isLow = e.pressurePct < 0;
-      const cls   = isLow ? 'cond-shorter' : 'cond-longer';
-      const sign  = isLow ? '-' : '+';
-      const lbl   = isLow ? 'Low pressure (' + e.pressureHpa + ' hPa)' : 'High pressure (' + e.pressureHpa + ' hPa)';
-      rows += '<div class="cond-row"><span class="cond-icon">\uD83D\uDCCA</span>'
-        + '<span class="cond-label">' + lbl + '</span>'
-        + '<span class="cond-val ' + cls + '">' + sign + e.pressureYds + ' yds</span></div>';
-    }
-    const plsCls = e.yardsDiff > 4 ? 'plays-like pl-longer'
-                 : e.yardsDiff < -4 ? 'plays-like pl-shorter' : 'plays-like';
-    const sgn = e.yardsDiff >= 0 ? '+' : '';
-    inner = '<div class="cond-rows">' + rows + '</div>'
-      + '<div class="' + plsCls + '">'
-      + '<span class="plays-like-label">Plays like</span>'
-      + '<span class="plays-like-yds">' + e.adjustedYards + ' yds</span>'
-      + '<span class="plays-like-diff">' + sgn + e.yardsDiff + '</span></div>';
-  } else if (hasBearing && !hasYards) {
-    inner = '<p class="cond-hint">Enter yards to green above for the adjusted yardage</p>';
+  let body = '';
+
+  if (!hasBearing && !hasWind) {
+    body = '<p class="cond-hint">Set a date with weather loaded, then point down the fairway</p>';
+  } else if (!hasBearing) {
+    body = '<p class="cond-hint">Point your phone down the fairway and tap to capture the bearing</p>';
   } else if (!hasWind) {
-    inner = '<p class="cond-hint">Set a date with weather loaded to activate</p>';
+    body = '<p class="cond-hint">Set a date with weather loaded to activate</p>';
   } else {
-    inner = '<p class="cond-hint">Point your phone down the fairway and tap to capture the bearing</p>';
+    // We have bearing + wind. Build dial always.
+    const dial = buildCompassDial(h.holeBearing, wind.dirDeg, wind.speedMph);
+
+    if (!hasYards) {
+      // Dial centered, no breakdown yet
+      body = '<div style="display:flex;justify-content:center;margin-top:.5rem;">' + dial + '</div>'
+           + '<p class="cond-hint" style="text-align:center;">Enter yards above for the adjusted yardage</p>';
+    } else {
+      // Full breakdown: dial left, rows right
+      const e = calcConditionsEffect(h.holeBearing, Number(h.yardsToGreen), wind);
+      let rows = '';
+      if (e.headwindMph > 1) {
+        const icon = e.isHeadwind ? '\u2191' : '\u2193';
+        const lbl  = e.isHeadwind ? 'Headwind' : 'Tailwind';
+        const cls  = e.isHeadwind ? 'cond-longer' : 'cond-shorter';
+        const sgn  = e.isHeadwind ? '+' : '-';
+        rows += '<div class="cond-row"><span class="cond-icon">' + icon + '</span>'
+          + '<span class="cond-label">' + lbl + ' ' + e.headwindMph + 'mph</span>'
+          + '<span class="cond-val ' + cls + '">' + sgn + e.headwindYds + 'y</span></div>';
+      }
+      if (e.crosswindMph > 2) {
+        const aim = e.crosswindFromRight ? 'aim left' : 'aim right';
+        rows += '<div class="cond-row"><span class="cond-icon">\u2194</span>'
+          + '<span class="cond-label">Cross ' + e.crosswindMph + 'mph</span>'
+          + '<span class="cond-val cond-neutral">' + aim + '</span></div>';
+      }
+      if (e.tempPct > 0) {
+        rows += '<div class="cond-row"><span class="cond-icon">\uD83C\uDF21\uFE0F</span>'
+          + '<span class="cond-label">Cold ' + e.tempC + '\u00b0C</span>'
+          + '<span class="cond-val cond-longer">+' + e.tempYds + 'y</span></div>';
+      }
+      if (e.rainPct > 0) {
+        rows += '<div class="cond-row"><span class="cond-icon">\uD83D\uDCA7</span>'
+          + '<span class="cond-label">Rain ' + e.rainMm + 'mm</span>'
+          + '<span class="cond-val cond-longer">+' + e.rainYds + 'y</span></div>';
+      }
+      if (e.pressureHpa && Math.abs(e.pressurePct) >= 0.5) {
+        const isLow = e.pressurePct < 0;
+        rows += '<div class="cond-row"><span class="cond-icon">\uD83D\uDCCA</span>'
+          + '<span class="cond-label">' + (isLow ? 'Low' : 'High') + ' ' + e.pressureHpa + 'hPa</span>'
+          + '<span class="cond-val ' + (isLow?'cond-shorter':'cond-longer') + '">' + (isLow?'-':'+')+e.pressureYds+'y</span></div>';
+      }
+      const plsCls = e.yardsDiff > 4 ? 'plays-like-big pl-longer'
+                   : e.yardsDiff < -4 ? 'plays-like-big pl-shorter' : 'plays-like-big';
+      const sgn = e.yardsDiff >= 0 ? '+' : '';
+      const playsLike = '<div class="' + plsCls + '">'
+        + '<span class="pl-label">Plays like</span>'
+        + '<span class="pl-num">' + e.adjustedYards + '<span style="font-size:1rem;font-weight:700"> yds</span></span>'
+        + '<span class="pl-diff">(' + sgn + e.yardsDiff + ' actual ' + h.yardsToGreen + ')</span>'
+        + '</div>';
+
+      body = '<div class="dial-layout">'
+        + '<div class="dial-col">' + dial + '</div>'
+        + '<div class="cond-right"><div class="cond-rows">' + rows + '</div>' + playsLike + '</div>'
+        + '</div>';
+    }
   }
-  return '<div id="conditionsPanel">'
-    + '<button type="button" class="' + btnCls + '" id="compassBtn">' + btnLabel + '</button>'
-    + inner + '</div>';
+
+  return '<div id="conditionsPanel">' + btn + body + '</div>';
 }
 
 async function requestCompassBearing() {
@@ -1405,11 +1536,15 @@ function renderEntryHole(direction) {
         </div>
       </div>
 
-      <div class="section-label">Approach</div>
-      <div class="yards-row">
-        <span class="yards-label">Yds to green</span>
-        <input class="yards-input" type="number" inputmode="numeric" placeholder="\u2013" value="${h.yardsToGreen||''}" id="yardsInput"/>
-        <span class="yards-unit">yds</span>
+      <div class="section-label">Distance to green</div>
+      <div class="yards-hero">
+        <span class="yards-hero-label">Yards to flag</span>
+        <div class="yards-hero-row">
+          <button type="button" class="yards-hero-btn" data-yards-step="-1">\u2212</button>
+          <input class="yards-hero-input" type="number" inputmode="numeric" placeholder="\u2013" value="${h.yardsToGreen||''}" id="yardsInput"/>
+          <button type="button" class="yards-hero-btn" data-yards-step="1">+</button>
+        </div>
+        <span class="yards-hero-unit">yds</span>
       </div>
 
       <div class="section-label">Conditions effect</div>
@@ -1629,13 +1764,24 @@ function renderEntryHole(direction) {
     yardsInput.addEventListener('input', e => {
       state.holes[state.currentHole].yardsToGreen = e.target.value;
       const panel = $('#conditionsPanel');
-      if (panel) {
-        const fresh = buildConditionsPanel(state.holes[state.currentHole]);
-        panel.outerHTML = fresh;
-        attachCompassHandler();
-      }
+      if (panel) { panel.outerHTML = buildConditionsPanel(state.holes[state.currentHole]); attachCompassHandler(); }
     });
   }
+
+  // Yards stepper +/- buttons
+  $$('[data-yards-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const h = state.holes[state.currentHole];
+      const step = Number(btn.dataset.yardsStep);
+      const cur  = Number(h.yardsToGreen) || 0;
+      const next = Math.max(0, Math.min(600, cur + step * 5));
+      h.yardsToGreen = next || '';
+      const inp = $('#yardsInput');
+      if (inp) inp.value = h.yardsToGreen;
+      const panel = $('#conditionsPanel');
+      if (panel) { panel.outerHTML = buildConditionsPanel(h); attachCompassHandler(); }
+    });
+  });
 
   const noteInput = $('#holeNote');
   if (noteInput) {
